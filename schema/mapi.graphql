@@ -1,0 +1,537 @@
+type Query {
+  "List of stores, which may include stores that are not associated with any account."
+  stores(
+    "Optional list of store IDs, return all stores if `null`"
+    ids: [ID!] = null
+  ): [Store!]!
+}
+
+type Mutation {
+  "Create a new item in the target folder"
+  createItem(input: CreateItemInput!): Item!
+  "Create a new sub-folder in the target folder"
+  createSubFolder(input: CreateSubFolderInput!): Folder!
+  "Modify properties on an existing item"
+  modifyItem(input: ModifyItemInput!): Item!
+  "Modify properties on an existing folder"
+  modifyFolder(input: ModifyFolderInput!): Folder!
+  "Remove an entire sub-folder"
+  removeFolder(
+    input: ObjectId!
+    "false means move to `Deleted Items`"
+    hardDelete: Boolean! = false
+  ): Boolean!
+
+  "Bulk mark items as read/unread"
+  markAsRead(input: MultipleItemsInput!, read: Boolean! = true): Boolean!
+  "Bulk copy items from a single source folder to a single destination folder"
+  copyItems(input: MultipleItemsInput!, destination: ObjectId!): Boolean!
+  "Bulk move items from a single source folder to a single destination folder"
+  moveItems(input: MultipleItemsInput!, destination: ObjectId!): Boolean!
+  "Bulk delete items from a single source folder"
+  deleteItems(
+    input: MultipleItemsInput!
+    "false means move to `Deleted Items`"
+    hardDelete: Boolean! = false
+  ): Boolean!
+}
+
+type Subscription {
+  "Get updates on items in a folder."
+  items("ID of the folder" folderId: ObjectId!): [ItemChange!]!
+  "Get updates on sub-folders of a folder."
+  subFolders("ID of the parent folder" parentFolderId: ObjectId!): [FolderChange!]!
+  "Get updates on the root folders of a store."
+  rootFolders("ID of the store" storeId: ID!): [FolderChange!]!
+}
+
+"Each MAPI session might have multiple stores."
+type Store {
+  "ID of this store"
+  id: ID!
+  "Name of this store"
+  name: String!
+
+  "Columns specified with `@columns(ids: ...)` on the `Query.stores` field"
+  columns: [Property]!
+
+  "List of root folders in the store"
+  rootFolders(
+    "Optional list of root folder IDs, return all root folders if `null`"
+    ids: [ID!] = null
+  ): [Folder!]!
+
+  "List of special folders in the store, some of which may not exist"
+  specialFolders("List of special folder IDs" ids: [SpecialFolder!]!): [Folder]!
+
+  "Open a single folder and read any or all of its properties."
+  folderProperties(
+    "Folder ID"
+    folderId: ID!
+    "Optional list of property IDs, returns all properties if `null`"
+    ids: [Column!]
+  ): [Property]!
+
+  "Open a single item and read any or all of its properties."
+  itemProperties(
+    "Item ID"
+    itemId: ID!
+    "Optional list of property IDs, returns all properties if `null`"
+    ids: [Column!]
+  ): [Property]!
+}
+
+"Special folders are created by default in most stores."
+enum SpecialFolder {
+  "Default delivery location for new mail items"
+  INBOX
+  "Default calendar folder containing appointment items"
+  CALENDAR
+  "Default contacts folder containing names, addresses, email, and notes about people or organizations"
+  CONTACTS
+  "Default tasks folder containing a list of tasks to be completed"
+  TASKS
+  "Default archive folder for items which have been archived instead of deleted"
+  ARCHIVE
+  "Deleted items folder for this store which is periodically emptied"
+  DELETED
+  "Drafts of items which have not been sent yet"
+  DRAFTS
+  "Folder containing sent items which have not been delivered yet"
+  OUTBOX
+  "Folder containing sent items which have been delivered"
+  SENT
+  "Junk email folder containing messages that have been marked as spam"
+  SPAM
+}
+
+"Folders create a hierarchy within each store."
+type Folder {
+  "ID of this folder"
+  id: ID!
+  "Parent folder, if this is not a root folder in the store"
+  parentFolder: Folder
+  "Store containing this folder"
+  store: Store!
+  "Name of this folder"
+  name: String!
+  "Total item count"
+  count: Int!
+  "Unread item count"
+  unread: Int!
+  "Special folder type, or `null` for normal folders"
+  specialFolder: SpecialFolder
+
+  "Columns specified with `@columns(ids: ...)` on the `Store.rootFolders` or `Folder.subFolders` field"
+  columns: [Property]!
+
+  "List of sub-folders under this folder in the hierarchy"
+  subFolders(
+    "Optional list of sub-folder IDs, return all immdediate sub-folders if `null`"
+    ids: [ID!] = null
+  ): [Folder!]!
+  "List of items grouped into conversations in this folder"
+  conversations(
+    "Optional list of conversation IDs, return all conversation if `null`"
+    ids: [ID!] = null
+  ): [Conversation!]!
+  "List of items in this folder"
+  items(
+    "Optional list of item IDs, return all items if `null`"
+    ids: [ID!] = null
+  ): [Item!]!
+}
+
+"Items are contained in folders."
+type Item {
+  "ID of this item"
+  id: ID!
+  "Parent folder which contains this item"
+  parentFolder: Folder!
+  "Optional conversation item group, `null` if the item was created without a `conversationId`"
+  conversation: Conversation
+  "Subject field"
+  subject: String!
+  "Sender name"
+  sender: String
+  "Recipients on the To: line"
+  to: String
+  "Recipients on the Cc: line"
+  cc: String
+  "HTML body contents"
+  body: Stream
+  "True if the item is marked as read, false if it is unread"
+  read: Boolean!
+  "Received/creation time"
+  received: DateTime
+  "Last modified time"
+  modified: DateTime
+  "Body preview"
+  preview: String
+
+  "Columns specified with `@columns(ids: ...)` on the `Folder.items` or `Conversation.items` field"
+  columns: [Property]!
+
+  "List of attachments on this item"
+  attachments(
+    "Optional list of attachment IDs, return all attachments if `null`"
+    ids: [ID!] = null
+  ): [Attachment!]!
+}
+
+"Files may be attached to Items."
+type FileAttachment {
+  "ID of this attachment"
+  id: ID!
+  "Display name of this attachment"
+  name: String!
+  "Contents of the file"
+  contents: Stream
+
+  "Read properties on the attachment"
+  properties(
+    "Optional list of property IDs, returns all properties if `null`"
+    ids: [PropIdInput!]
+  ): [Property]!
+}
+
+"Attachments can be either a file or another item."
+union Attachment = Item | FileAttachment
+
+"Items may be grouped into conversations which roll-up properties from the items."
+type Conversation {
+  "ID of this conversation (distinct from the item or folder IDs)"
+  id: ID!
+  "Subject of the conversation, typically common to all of the items"
+  subject: String!
+  "Total item count"
+  count: Int!
+  "Unread item count"
+  unread: Int!
+  "Last received/creation time of any item in the conversation"
+  received: DateTime
+
+  "List of items in the conversation"
+  items(
+    "Optional list of item IDs, return all items if `null`"
+    ids: [ID!] = null
+  ): [Item!]!
+}
+
+"[ISO 8601](https://en.m.wikipedia.org/wiki/ISO_8601) date/time format"
+scalar DateTime
+
+"Pair of IDs which uniquely identify a folder or item across all stores"
+input ObjectId {
+  "ID of the store containing the object"
+  storeId: ID!
+  "ID of the object"
+  objectId: ID!
+}
+
+"Properties which can be used to create a new item"
+input CreateItemInput {
+  "Target folder ID"
+  folderId: ObjectId!
+  "Subject of the new item"
+  subject: String!
+  "Immutable conversation ID, optional but must be set at creation"
+  conversationId: ID
+  "True if the item is marked as read, false if it is unread"
+  read: Boolean! = false
+  "Immutable received/creation time, optional but must be set at creation, defaults to current time"
+  received: DateTime
+  "Optional last modified time, defaults to current time"
+  modified: DateTime
+  "List of properties to set on the item at the time of creation"
+  properties: [PropertyInput!]
+}
+
+"Properties which can be used to create a new sub-folder"
+input CreateSubFolderInput {
+  "Target parent folder ID"
+  folderId: ObjectId!
+  "Name of the new folder"
+  name: String!
+  "List of properties to set on the folder at the time of creation"
+  properties: [PropertyInput!]
+}
+
+"Properties which can be used to modify an existing item"
+input ModifyItemInput {
+  "ID of an existing item"
+  id: ObjectId!
+  "Optionally change the item subject"
+  subject: String
+  "Optionally mark the item as read/unread"
+  read: Boolean
+  "List of properties to set/overwrite on the existing item"
+  properties: [PropertyInput!]
+  "List of properties to remove from the existing item"
+  deleted: [PropIdInput!]
+}
+
+"Properties which can be used to modify an existing folder"
+input ModifyFolderInput {
+  "ID of an existing folder"
+  folderId: ObjectId!
+  "Optionally rename the folder"
+  name: String
+  "List of properties to set/overwrite on the existing folder"
+  properties: [PropertyInput!]
+  "List of properties to remove from the existing folder"
+  deleted: [PropIdInput!]
+}
+
+"Properties which can be used to identify multiple items in the same folder for bulk operations"
+input MultipleItemsInput {
+  "Parent folder ID"
+  folderId: ObjectId!
+  "List of item IDs on which to perform the bulk operation"
+  itemIds: [ID!]!
+}
+
+"128-bit Guid type"
+scalar Guid
+
+"Named property ID description"
+input NamedPropInput {
+  "Property set Guid"
+  propset: Guid!
+  "Integer ID, mutually exclusive with `name`"
+  id: Int
+  "String name, mutually exclusive with `id`"
+  name: String
+}
+
+"Property ID for either a built-in or named property"
+input PropIdInput {
+  "Built-in property ID, mutually exclusive with `named`"
+  id: Int
+  "Named property ID, mutually exclusive with `id`"
+  named: NamedPropInput
+}
+
+"Property value variant type"
+input PropValueInput {
+  "Integer value, mutually exclusive with all other fields"
+  integer: Int
+  "Boolean value, mutually exclusive with all other fields"
+  boolean: Boolean
+  "String value, mutually exclusive with all other fields"
+  string: String
+  "Guid value, mutually exclusive with all other fields"
+  guid: Guid
+  "DateTime value, mutually exclusive with all other fields"
+  time: DateTime
+  "Binary value, mutually exclusive with all other fields"
+  bin: ID
+  "Stream value, mutually exclusive with all other fields"
+  stream: Stream
+}
+
+"Complete property type used for setting properties on items or folders"
+input PropertyInput {
+  "Property ID"
+  id: PropIdInput!
+  "Property value"
+  value: PropValueInput!
+}
+
+"This type represents a built-in or named property integer ID in a union."
+type IntId {
+  "Built-in or named property integer ID"
+  id: Int!
+}
+
+"This type represents a named property string name in a union."
+type StringId {
+  "Named property string name"
+  name: String!
+}
+
+union NamedPropId = IntId | StringId
+
+"This type represents a complete named property ID."
+type NamedId {
+  "Property set Guid"
+  propset: Guid!
+  "Named property integer ID or string name"
+  id: NamedPropId!
+}
+
+"This type represents an Int value in a property value variant union."
+type IntValue {
+  value: Int!
+}
+
+"This type represents a Boolean value in a property value variant union."
+type BoolValue {
+  value: Boolean!
+}
+
+"This type represents a String value in a property value variant union."
+type StringValue {
+  value: String!
+}
+
+"This type represents a Guid value in a property value variant union."
+type GuidValue {
+  value: Guid!
+}
+
+"This type represents a DateTime value in a property value variant union."
+type DateTimeValue {
+  value: DateTime!
+}
+
+"This type represents an ID value in a property value variant union."
+type BinaryValue {
+  value: ID!
+}
+
+"Opaque stream descriptor with enough information to read/write the stream outside of GraphQL, e.g. through native module or fetch APIs."
+scalar Stream
+
+"This type represents a Stream value in a property value variant union."
+type StreamValue {
+  value: Stream!
+}
+
+"Property IDs are either built-in integer IDs or named property descriptions."
+union PropId = IntId | NamedId
+
+"Property values are a variant of these types."
+union PropValue =
+    IntValue
+  | BoolValue
+  | StringValue
+  | GuidValue
+  | DateTimeValue
+  | BinaryValue
+  | StreamValue
+
+"A complete property includes the property ID and the property value."
+type Property {
+  "Property ID"
+  id: PropId!
+  "Property value"
+  value: PropValue!
+}
+
+"When sorting by a property ID you need to include the expected property type."
+enum PropType {
+  "This property expects an `IntValue`"
+  INT
+  "This property expects a `BoolValue`"
+  BOOL
+  "This property expects a `StringValue`"
+  STRING
+  "This property expects a `GuidValue`"
+  GUID
+  "This property expects a `DateTimeValue`"
+  DATETIME
+  "This property expects a `BinaryValue`"
+  BINARY
+  "This property expects a `StreamValue`"
+  STREAM @deprecated(reason: "You can't sort on a `StreamValue`")
+}
+
+"Sort in ascending or descending order based on a single property."
+input Order {
+  "True if the property values should be sorted in descending order, false if they should be sorted in ascending order (default)"
+  descending: Boolean! = false
+  "Property ID of the sorted value"
+  property: PropIdInput!
+  "Expected type of the sorted value"
+  type: PropType!
+}
+
+"Add a column to the columns property on an object collection."
+input Column {
+  "Property ID of the sorted value"
+  property: PropIdInput!
+  "Expected type of the sorted value"
+  type: PropType!
+}
+
+"Subscriptions on items can deliver any of these payloads when a matching item changes."
+union ItemChange = ItemAdded | ItemUpdated | ItemRemoved | ItemsReloaded
+
+"Payload for subscription events when an `Item` is added"
+type ItemAdded {
+  "Index in the subscribed window"
+  index: Int!
+  "`Item` that was added"
+  added: Item!
+}
+
+"Payload for subscription events when an `Item` is updated"
+type ItemUpdated {
+  "Index in the subscribed window"
+  index: Int!
+  "`Item` that was updated"
+  updated: Item!
+}
+
+"Payload for subscription events when an `Item` is removed"
+type ItemRemoved {
+  "Index in the subscribed window"
+  index: Int!
+  "ID of the `Item` that was removed"
+  removed: ID!
+}
+
+"Payload for subscription events when all of the `Item` rows have been reloaded"
+type ItemsReloaded {
+  "`Items` that were reloaded"
+  reloaded: [Item!]!
+}
+
+"Subscriptions on folders can deliver any of these payloads when a matching folder changes."
+union FolderChange = FolderAdded | FolderUpdated | FolderRemoved | FoldersReloaded
+
+"Payload for subscription events when an `Folder` is added"
+type FolderAdded {
+  "Index in the subscribed window"
+  index: Int!
+  "`Folder` that was added"
+  added: Folder!
+}
+
+"Payload for subscription events when an `Folder` is updated"
+type FolderUpdated {
+  "Index in the subscribed window"
+  index: Int!
+  "`Folder` that was updated"
+  updated: Folder!
+}
+
+"Payload for subscription events when an `Folder` is removed"
+type FolderRemoved {
+  "Index in the subscribed window"
+  index: Int!
+  "ID of the `Folder` that was removed"
+  removed: ID!
+}
+
+"Payload for subscription events when all of the `Folder` rows have been reloaded"
+type FoldersReloaded {
+  "`Folders` that were reloaded"
+  reloaded: [Folder!]!
+}
+
+"Sort the results of any object collection by the values of these properties."
+directive @orderBy("Sort and sub-sort orders" sorts: [Order!]!) on FIELD
+
+"Add columns to the columns field in any object collection."
+directive @columns("Additional column property IDs" ids: [Column!]!) on FIELD
+
+"Seek to the element with `id`, or after the last element if `id` is `null`. If combined with `@skip`, first the cursor will be placed on the element with `id`, then the `count` offset will be applied relative to that starting point."
+directive @seek(id: ID = null) on FIELD
+
+"Define a window on any non-property field by skipping `count` elements. The `count` argument may be negative when combined with `@seek`."
+directive @offset(count: Int!) on FIELD
+
+"Define a window on any non-property field by taking a maximum of `count` elements. The `count` argument may be negative when combined with `@seek` or `@offset`, but in that case it will not take any elements beyond the starting point."
+directive @take(count: Int!) on FIELD
