@@ -34,8 +34,8 @@ the Vcpkg README for more details.
 Once you have Vcpkg installed and CMake is configured to use it, install the dependencies with a
 command like this:
 
-```shell
-.\vcpkg.exe install --triplet=x64-windows cppgraphqlgen gtest
+```cmd
+> .\vcpkg\vcpkg install --triplet=x64-windows cppgraphqlgen gtest
 ```
 
 ## Contributing
