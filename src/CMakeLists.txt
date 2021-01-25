@@ -1,16 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-# Build MAPIStubLibrary as a static lib
-set(MAPISTUBLIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/MAPIStubLibrary)
-add_library(mapistub STATIC
-  MAPIGuid.cpp
-  ${MAPISTUBLIBRARY_DIR}/library/mapiStubLibrary.cpp
-  ${MAPISTUBLIBRARY_DIR}/library/stubutils.cpp)
-target_include_directories(mapistub
-  PUBLIC ${MAPISTUBLIBRARY_DIR}/include
-  PRIVATE ${MAPISTUBLIBRARY_DIR}/library)
-
 # Build gqlmapi as a static lib too
 add_library(gqlmapi STATIC
   Service.cpp

@@ -10,6 +10,7 @@ find_package(PEGTL CONFIG REQUIRED)
 find_package(cppgraphqlgen CONFIG REQUIRED)
 
 add_subdirectory(schema)
+add_subdirectory(mapistub)
 add_subdirectory(src)
 
 include(CTest)
