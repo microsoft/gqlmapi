@@ -1,14 +1,40 @@
-# Project
+# GqlMAPI
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This project contains a library built with [CppGraphQLGen](https://github.com/microsoft/cppgraphqlgen)
+which binds a [GraphQL](https://graphql.org/) [schema](./schema/mapi.graphql) to
+[MAPI](https://en.wikipedia.org/wiki/MAPI).
 
-As the maintainer of this project, please make a few updates:
+The main purpose of this project is to demonstrate building a non-trivial C++ GraphQL service with
+CppGraphQLGen. It may also be useful in diagnostic and debugging tools for
+[Microsoft Outlook](https://en.wikipedia.org/wiki/Microsoft_Outlook). This library is not
+officially supported by Microsoft, but MAPI itself is still supported as a backwards compatible
+[integration API](https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/outlook-mapi-reference)
+for Microsoft Outlook.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Getting Started
+
+You will need a Windows computer with a working installation of Microsoft Outlook for Windows,
+since that is how MAPI is installed. You can use any C++ compiler toolchain which fully supports
+C++17 on Windows, I recommend [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) or
+[Visual Studio Code](https://code.visualstudio.com/?wt.mc_id=DX_841432) with the
+[CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) and
+[C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extensions from
+Microsoft.
+
+When cloning this repository, you should perform a recursive clone to get the
+[MAPIStubLibrary](https://github.com/stephenegriffin/MAPIStubLibrary) sub-module. If you have
+already cloned the repository without the sub-module, you can clone it separately with the
+following Git commands:
+
+```shell
+git submodule init
+git submodule update
+```
+
+The build system uses [CMake](https://cmake.org/). If you are using Visual Studio 2019, it comes
+with a supported version of CMake (>= 3.17.1) pre-installed. You can also install CMake separately,
+and then you can use it with another editor like Visual Studio Code or
+[Vim](https://en.wikipedia.org/wiki/Vim_(text_editor)).
 
 ## Contributing
 
