@@ -21,16 +21,6 @@ C++17 on Windows, I recommend [Visual Studio 2019](https://visualstudio.microsof
 [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extensions from
 Microsoft.
 
-When cloning this repository, you should perform a recursive clone to get the
-[MAPIStubLibrary](https://github.com/stephenegriffin/MAPIStubLibrary) sub-module. If you have
-already cloned the repository without the sub-module, you can clone it separately with the
-following Git commands:
-
-```shell
-git submodule init
-git submodule update
-```
-
 The build system uses [CMake](https://cmake.org/). If you are using Visual Studio 2019, it comes
 with a supported version of CMake (>= 3.17.1) pre-installed. You can also install CMake separately,
 and then you can use it with another editor like Visual Studio Code or
