@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Build MAPIStubLibrary as a static lib
 add_library(mapistub STATIC
-  MAPIGuid.cpp
   ../library/mapiStubLibrary.cpp
   ../library/stubutils.cpp)
 target_include_directories(mapistub

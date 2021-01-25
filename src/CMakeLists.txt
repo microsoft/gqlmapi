@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-# Build gqlmapi as a static lib too
+# Build gqlmapi as a static lib
 add_library(gqlmapi STATIC
+  MAPIGuid.cpp
   Service.cpp
   Session.cpp
   Query.cpp

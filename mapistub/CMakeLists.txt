@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(MAPIStubLibrary
   GIT_REPOSITORY "https://github.com/stephenegriffin/MAPIStubLibrary"
   GIT_TAG "01f9bf8cd2ac39078aabfc4662c873159efd75d6"
-  GIT_PROGRESS ON)
+  GIT_PROGRESS TRUE)
 FetchContent_GetProperties(MAPIStubLibrary)
 if(NOT mapistublibrary_POPULATED)
   FetchContent_Populate(MAPIStubLibrary)
