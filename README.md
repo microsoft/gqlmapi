@@ -22,9 +22,21 @@ C++17 on Windows, I recommend [Visual Studio 2019](https://visualstudio.microsof
 Microsoft.
 
 The build system uses [CMake](https://cmake.org/). If you are using Visual Studio 2019, it comes
-with a supported version of CMake (>= 3.17.1) pre-installed. You can also install CMake separately,
-and then you can use it with another editor like Visual Studio Code or
+with a supported version of CMake (>= 3.17.1) pre-installed. You can also install CMake separately
+and then use it with another editor like Visual Studio Code or
 [Vim](https://en.wikipedia.org/wiki/Vim_(text_editor)).
+
+You will also need to install CppGraphQLGen and GoogleTest separately to satisfy the CMake
+dependencies. The easiest way to do that is to use [Vcpkg](https://github.com/microsoft/vcpkg).
+See the [Quick Start: Windows](https://github.com/microsoft/vcpkg#quick-start-windows) section of
+the Vcpkg README for more details.
+
+Once you have Vcpkg installed and CMake is configured to use it, install the dependencies with a
+command like this:
+
+```shell
+.\vcpkg.exe install --triplet=x64-windows cppgraphqlgen gtest
+```
 
 ## Contributing
 
