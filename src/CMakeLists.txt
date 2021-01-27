@@ -1,10 +1,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-# Build gqlmapi as a static lib
-add_library(gqlmapi STATIC
+# Build gqlmapiCommon as a static lib
+add_library(gqlmapiCommon STATIC
   MAPIGuid.cpp
-  Service.cpp
   Session.cpp
   Query.cpp
   Mutation.cpp
@@ -38,9 +37,25 @@ add_library(gqlmapi STATIC
   FoldersReloaded.cpp
   SubFoldersSubscription.cpp
   RootFoldersSubscription.cpp)
-target_include_directories(gqlmapi
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(gqlmapi
-  PRIVATE mapistub
-  PUBLIC mapischema cppgraphqlgen::graphqlintrospection cppgraphqlgen::graphqljson)
+target_include_directories(gqlmapiCommon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(gqlmapiCommon PUBLIC
+  mapistub mapischema cppgraphqlgen::graphqlintrospection cppgraphqlgen::graphqljson)
+
+add_library(gqlmapi Service.cpp)
+target_link_libraries(gqlmapi PRIVATE gqlmapiCommon
+  INTERFACE cppgraphqlgen::graphqlintrospection)
+target_include_directories(gqlmapi PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../schema>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(gqlmapi PUBLIC GQLMAPI_DLLEXPORTS)
+endif()
+
+file(GLOB PUBLIC_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
+file(GLOB SCHEMA_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../schema/*.h)
+set_property(TARGET gqlmapi PROPERTY PUBLIC_HEADER "${PUBLIC_HEADERS};${SCHEMA_HEADERS}")
+
+install(TARGETS gqlmapi EXPORT gqlmapi)
+install(EXPORT gqlmapi DESTINATION cmake)

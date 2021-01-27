@@ -3,10 +3,18 @@
 
 #pragma once
 
+// clang-format off
+#ifdef GQLMAPI_DLLEXPORTS
+	#define GQLMAPI_IMPORT __declspec(dllimport)
+#else // !GQLMAPI_DLLEXPORTS
+	#define GQLMAPI_IMPORT
+#endif // !GQLMAPI_DLLEXPORTS
+// clang-format on
+
 #include "MAPIObjects.h"
 
 namespace graphql::mapi {
 
-std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept;
+GQLMAPI_IMPORT std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept;
 
 } // namespace graphql::mapi

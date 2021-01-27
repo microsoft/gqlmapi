@@ -1,11 +1,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+// clang-format off
+#ifdef GQLMAPI_DLLEXPORTS
+	#define GQLMAPI_EXPORT __declspec(dllexport)
+#else // !GQLMAPI_DLLEXPORTS
+	#define GQLMAPI_EXPORT
+#endif // !GQLMAPI_DLLEXPORTS
+// clang-format on
+
 #include "Types.h"
 
 namespace graphql::mapi {
 
-std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept
+GQLMAPI_EXPORT std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept
 {
 	auto session = std::make_shared<Session>(useDefaultProfile);
 	auto query = std::make_shared<Query>(session);

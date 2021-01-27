@@ -9,6 +9,22 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(PEGTL CONFIG REQUIRED)
 find_package(cppgraphqlgen CONFIG REQUIRED)
 
+# Default to static libs
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static libs" OFF)
+
+if(VCPKG_TARGET_TRIPLET)
+  message(STATUS "Using ${VCPKG_TARGET_TRIPLET} triplet with vcpkg")
+
+  # Match the MSVC runtime if we're using VCPKG with static libraries.
+  if(VCPKG_TARGET_TRIPLET MATCHES [[^.+-static$]])
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    message(STATUS "Using MSVC runtime static library")
+  else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    message(STATUS "Using MSVC runtime DLL")
+  endif()
+endif()
+
 add_subdirectory(schema)
 add_subdirectory(mapistub)
 add_subdirectory(src)
