@@ -13,7 +13,7 @@
 
 namespace graphql::mapi {
 
-GQLMAPI_EXPORT std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept
+GQLMAPI_EXPORT std::shared_ptr<service::Request> GetService(bool useDefaultProfile) noexcept
 {
 	auto session = std::make_shared<Session>(useDefaultProfile);
 	auto query = std::make_shared<Query>(session);

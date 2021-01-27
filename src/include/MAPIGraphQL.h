@@ -11,10 +11,10 @@
 #endif // !GQLMAPI_DLLEXPORTS
 // clang-format on
 
-#include "MAPIObjects.h"
+#include "graphqlservice/GraphQLService.h"
 
 namespace graphql::mapi {
 
-GQLMAPI_IMPORT std::shared_ptr<Operations> GetService(bool useDefaultProfile) noexcept;
+GQLMAPI_IMPORT std::shared_ptr<service::Request> GetService(bool useDefaultProfile) noexcept;
 
 } // namespace graphql::mapi

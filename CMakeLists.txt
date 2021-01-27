@@ -9,9 +9,6 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(PEGTL CONFIG REQUIRED)
 find_package(cppgraphqlgen CONFIG REQUIRED)
 
-# Default to static libs
-option(BUILD_SHARED_LIBS "Build shared libraries instead of static libs" OFF)
-
 if(VCPKG_TARGET_TRIPLET)
   message(STATUS "Using ${VCPKG_TARGET_TRIPLET} triplet with vcpkg")
 
