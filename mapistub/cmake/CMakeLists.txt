@@ -11,5 +11,5 @@ add_library(mapistub STATIC
   ../library/mapiStubLibrary.cpp
   ../library/stubutils.cpp)
 target_include_directories(mapistub
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+  PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../library>)

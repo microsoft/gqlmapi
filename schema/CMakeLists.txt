@@ -20,8 +20,9 @@ add_custom_target(update_schema ALL
 file(STRINGS schema_files SCHEMA_FILES)
 add_library(mapischema STATIC ${SCHEMA_FILES})
 add_dependencies(mapischema update_schema)
-target_include_directories(mapischema PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(
-  mapischema
-  PUBLIC cppgraphqlgen::graphqljson cppgraphqlgen::graphqlpeg
-         cppgraphqlgen::graphqlresponse cppgraphqlgen::graphqlservice)
+target_include_directories(mapischema PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_link_libraries(mapischema PUBLIC cppgraphqlgen::graphqlservice)
+
+if(NOT BUILD_SHARED_LIBS)
+  install(TARGETS mapischema EXPORT gqlmapi)
+endif()
