@@ -30,3 +30,10 @@ include(CTest)
 if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
+
+# Build a NuGet package
+set(CPACK_PACKAGE_VENDOR "Microsoft")
+set(CPACK_PACKAGE_DESCRIPTION "C++ GraphQL Service Bindings for MAPI")
+set(CPACK_PACKAGE_CHECKSUM "SHA256")
+set(CPACK_GENERATOR "NuGet")
+include(CPack)
