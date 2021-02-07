@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 cmake_minimum_required(VERSION 3.17.1)
-project(gqlmapi VERSION 0.1.0)
+project(gqlmapi VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -21,6 +21,8 @@ if(VCPKG_TARGET_TRIPLET)
     message(STATUS "Using MSVC runtime DLL")
   endif()
 endif()
+
+option(BUILD_SHARED_LIBS "Build a Windows DLL instead of a static library" ON)
 
 add_subdirectory(schema)
 add_subdirectory(mapistub)
