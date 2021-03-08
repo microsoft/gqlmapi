@@ -141,7 +141,7 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 
 		auto& modifiedProp = properties.get()[nextProp++];
 
-		modifiedProp.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
+		modifiedProp.ulPropTag = PR_LAST_MODIFICATION_TIME;
 		modifiedProp.Value.ft = convert::datetime::from_string(inputArg.modified->get<response::StringType>());
 	}
 
