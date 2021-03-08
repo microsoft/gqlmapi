@@ -186,7 +186,7 @@ private:
 };
 
 // Additional property tags which MAPIStubLibrary doesn't know about.
-constexpr ULONG PR_CONVERSATION_ID = PROP_TAG(PT_BINARY, 0x3013);
+constexpr ULONG PR_CONVERSATION_ID = PROP_TAG(PT_BINARY, 0x3013);	// https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/7fdd0560-5e41-4518-bfbb-0c5a6eb6be6c
 
 // Forward declarations
 class Store;
