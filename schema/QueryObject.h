@@ -31,6 +31,6 @@ private:
 	std::shared_ptr<schema::Schema> _schema;
 };
 
-} /* namespace graphql::mapi::object */
+} // namespace graphql::mapi::object
 
 #endif // QUERYOBJECT_H

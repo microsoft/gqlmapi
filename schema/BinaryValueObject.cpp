@@ -44,7 +44,7 @@ std::future<service::ResolverResult> BinaryValue::resolve_typename(service::Reso
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(BinaryValue)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddBinaryValueDetails(std::shared_ptr<schema::ObjectType> typeBinaryValue, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddBinaryValueDetails(std::shared_ptr<schema::ObjectType> typeBinaryValue, 
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

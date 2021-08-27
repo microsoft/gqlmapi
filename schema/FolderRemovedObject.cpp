@@ -55,7 +55,7 @@ std::future<service::ResolverResult> FolderRemoved::resolve_typename(service::Re
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(FolderRemoved)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddFolderRemovedDetails(std::shared_ptr<schema::ObjectType> typeFolderRemoved, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -65,4 +65,4 @@ void AddFolderRemovedDetails(std::shared_ptr<schema::ObjectType> typeFolderRemov
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

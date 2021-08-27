@@ -22,16 +22,16 @@ namespace graphql {
 namespace service {
 
 static const std::array<std::string_view, 10> s_namesSpecialFolder = {
-	"INBOX",
-	"CALENDAR",
-	"CONTACTS",
-	"TASKS",
-	"ARCHIVE",
-	"DELETED",
-	"DRAFTS",
-	"OUTBOX",
-	"SENT",
-	"SPAM"
+	"INBOX"sv,
+	"CALENDAR"sv,
+	"CONTACTS"sv,
+	"TASKS"sv,
+	"ARCHIVE"sv,
+	"DELETED"sv,
+	"DRAFTS"sv,
+	"OUTBOX"sv,
+	"SENT"sv,
+	"SPAM"sv
 };
 
 template <>
@@ -42,7 +42,7 @@ mapi::SpecialFolder ModifiedArgument<mapi::SpecialFolder>::convert(const respons
 		throw service::schema_exception { { "not a valid SpecialFolder value" } };
 	}
 
-	auto itr = std::find(s_namesSpecialFolder.cbegin(), s_namesSpecialFolder.cend(), value.get<response::StringType>());
+	const auto itr = std::find(s_namesSpecialFolder.cbegin(), s_namesSpecialFolder.cend(), value.get<response::StringType>());
 
 	if (itr == s_namesSpecialFolder.cend())
 	{
@@ -56,24 +56,24 @@ template <>
 std::future<service::ResolverResult> ModifiedResult<mapi::SpecialFolder>::convert(service::FieldResult<mapi::SpecialFolder>&& result, ResolverParams&& params)
 {
 	return resolve(std::move(result), std::move(params),
-		[](mapi::SpecialFolder&& value, const ResolverParams&)
+		[](mapi::SpecialFolder value, const ResolverParams&)
 		{
 			response::Value result(response::Type::EnumValue);
 
-			result.set<response::StringType>(std::string(s_namesSpecialFolder[static_cast<size_t>(value)]));
+			result.set<response::StringType>(response::StringType { s_namesSpecialFolder[static_cast<size_t>(value)] });
 
 			return result;
 		});
 }
 
 static const std::array<std::string_view, 7> s_namesPropType = {
-	"INT",
-	"BOOL",
-	"STRING",
-	"GUID",
-	"DATETIME",
-	"BINARY",
-	"STREAM"
+	"INT"sv,
+	"BOOL"sv,
+	"STRING"sv,
+	"GUID"sv,
+	"DATETIME"sv,
+	"BINARY"sv,
+	"STREAM"sv
 };
 
 template <>
@@ -84,7 +84,7 @@ mapi::PropType ModifiedArgument<mapi::PropType>::convert(const response::Value& 
 		throw service::schema_exception { { "not a valid PropType value" } };
 	}
 
-	auto itr = std::find(s_namesPropType.cbegin(), s_namesPropType.cend(), value.get<response::StringType>());
+	const auto itr = std::find(s_namesPropType.cbegin(), s_namesPropType.cend(), value.get<response::StringType>());
 
 	if (itr == s_namesPropType.cend())
 	{
@@ -98,11 +98,11 @@ template <>
 std::future<service::ResolverResult> ModifiedResult<mapi::PropType>::convert(service::FieldResult<mapi::PropType>&& result, ResolverParams&& params)
 {
 	return resolve(std::move(result), std::move(params),
-		[](mapi::PropType&& value, const ResolverParams&)
+		[](mapi::PropType value, const ResolverParams&)
 		{
 			response::Value result(response::Type::EnumValue);
 
-			result.set<response::StringType>(std::string(s_namesPropType[static_cast<size_t>(value)]));
+			result.set<response::StringType>(response::StringType { s_namesPropType[static_cast<size_t>(value)] });
 
 			return result;
 		});
@@ -117,6 +117,118 @@ mapi::ObjectId ModifiedArgument<mapi::ObjectId>::convert(const response::Value& 
 	return {
 		std::move(valueStoreId),
 		std::move(valueObjectId)
+	};
+}
+
+template <>
+mapi::NamedPropInput ModifiedArgument<mapi::NamedPropInput>::convert(const response::Value& value)
+{
+	auto valuePropset = service::ModifiedArgument<response::Value>::require("propset", value);
+	auto valueId = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("id", value);
+	auto valueName = service::ModifiedArgument<response::StringType>::require<service::TypeModifier::Nullable>("name", value);
+
+	return {
+		std::move(valuePropset),
+		std::move(valueId),
+		std::move(valueName)
+	};
+}
+
+template <>
+mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const response::Value& value)
+{
+	auto valueInteger = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("integer", value);
+	auto valueBoolean = service::ModifiedArgument<response::BooleanType>::require<service::TypeModifier::Nullable>("boolean", value);
+	auto valueString = service::ModifiedArgument<response::StringType>::require<service::TypeModifier::Nullable>("string", value);
+	auto valueGuid = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("guid", value);
+	auto valueTime = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("time", value);
+	auto valueBin = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable>("bin", value);
+	auto valueStream = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("stream", value);
+
+	return {
+		std::move(valueInteger),
+		std::move(valueBoolean),
+		std::move(valueString),
+		std::move(valueGuid),
+		std::move(valueTime),
+		std::move(valueBin),
+		std::move(valueStream)
+	};
+}
+
+template <>
+mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(const response::Value& value)
+{
+	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
+	auto valueItemIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::List>("itemIds", value);
+
+	return {
+		std::move(valueFolderId),
+		std::move(valueItemIds)
+	};
+}
+
+template <>
+mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::Value& value)
+{
+	auto valueId = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("id", value);
+	auto valueNamed = service::ModifiedArgument<mapi::NamedPropInput>::require<service::TypeModifier::Nullable>("named", value);
+
+	return {
+		std::move(valueId),
+		std::move(valueNamed)
+	};
+}
+
+template <>
+mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const response::Value& value)
+{
+	auto valueId = service::ModifiedArgument<mapi::PropIdInput>::require("id", value);
+	auto valueValue = service::ModifiedArgument<mapi::PropValueInput>::require("value", value);
+
+	return {
+		std::move(valueId),
+		std::move(valueValue)
+	};
+}
+
+template <>
+mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
+{
+	const auto defaultValue = []()
+	{
+		response::Value values(response::Type::Map);
+		response::Value entry;
+
+		entry = response::Value(false);
+		values.emplace_back("descending", std::move(entry));
+
+		return values;
+	}();
+
+	auto pairDescending = service::ModifiedArgument<response::BooleanType>::find("descending", value);
+	auto valueDescending = (pairDescending.second
+		? std::move(pairDescending.first)
+		: service::ModifiedArgument<response::BooleanType>::require("descending", defaultValue));
+	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
+	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
+
+	return {
+		std::move(valueDescending),
+		std::move(valueProperty),
+		std::move(valueType)
+	};
+}
+
+template <>
+mapi::Column ModifiedArgument<mapi::Column>::convert(const response::Value& value)
+{
+	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
+	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
+
+	return {
+		std::move(valueProperty),
+		std::move(valueType)
 	};
 }
 
@@ -204,119 +316,7 @@ mapi::ModifyFolderInput ModifiedArgument<mapi::ModifyFolderInput>::convert(const
 	};
 }
 
-template <>
-mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(const response::Value& value)
-{
-	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
-	auto valueItemIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::List>("itemIds", value);
-
-	return {
-		std::move(valueFolderId),
-		std::move(valueItemIds)
-	};
-}
-
-template <>
-mapi::NamedPropInput ModifiedArgument<mapi::NamedPropInput>::convert(const response::Value& value)
-{
-	auto valuePropset = service::ModifiedArgument<response::Value>::require("propset", value);
-	auto valueId = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("id", value);
-	auto valueName = service::ModifiedArgument<response::StringType>::require<service::TypeModifier::Nullable>("name", value);
-
-	return {
-		std::move(valuePropset),
-		std::move(valueId),
-		std::move(valueName)
-	};
-}
-
-template <>
-mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::Value& value)
-{
-	auto valueId = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("id", value);
-	auto valueNamed = service::ModifiedArgument<mapi::NamedPropInput>::require<service::TypeModifier::Nullable>("named", value);
-
-	return {
-		std::move(valueId),
-		std::move(valueNamed)
-	};
-}
-
-template <>
-mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const response::Value& value)
-{
-	auto valueInteger = service::ModifiedArgument<response::IntType>::require<service::TypeModifier::Nullable>("integer", value);
-	auto valueBoolean = service::ModifiedArgument<response::BooleanType>::require<service::TypeModifier::Nullable>("boolean", value);
-	auto valueString = service::ModifiedArgument<response::StringType>::require<service::TypeModifier::Nullable>("string", value);
-	auto valueGuid = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("guid", value);
-	auto valueTime = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("time", value);
-	auto valueBin = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable>("bin", value);
-	auto valueStream = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("stream", value);
-
-	return {
-		std::move(valueInteger),
-		std::move(valueBoolean),
-		std::move(valueString),
-		std::move(valueGuid),
-		std::move(valueTime),
-		std::move(valueBin),
-		std::move(valueStream)
-	};
-}
-
-template <>
-mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const response::Value& value)
-{
-	auto valueId = service::ModifiedArgument<mapi::PropIdInput>::require("id", value);
-	auto valueValue = service::ModifiedArgument<mapi::PropValueInput>::require("value", value);
-
-	return {
-		std::move(valueId),
-		std::move(valueValue)
-	};
-}
-
-template <>
-mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
-{
-	const auto defaultValue = []()
-	{
-		response::Value values(response::Type::Map);
-		response::Value entry;
-
-		entry = response::Value(false);
-		values.emplace_back("descending", std::move(entry));
-
-		return values;
-	}();
-
-	auto pairDescending = service::ModifiedArgument<response::BooleanType>::find("descending", value);
-	auto valueDescending = (pairDescending.second
-		? std::move(pairDescending.first)
-		: service::ModifiedArgument<response::BooleanType>::require("descending", defaultValue));
-	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
-	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
-
-	return {
-		std::move(valueDescending),
-		std::move(valueProperty),
-		std::move(valueType)
-	};
-}
-
-template <>
-mapi::Column ModifiedArgument<mapi::Column>::convert(const response::Value& value)
-{
-	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
-	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
-
-	return {
-		std::move(valueProperty),
-		std::move(valueType)
-	};
-}
-
-} /* namespace service */
+} // namespace service
 
 namespace mapi {
 
@@ -343,6 +343,20 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(PropType)gql"sv, typePropType);
 	auto typeObjectId = schema::InputObjectType::Make(R"gql(ObjectId)gql"sv, R"md(Pair of IDs which uniquely identify a folder or item across all stores)md"sv);
 	schema->AddType(R"gql(ObjectId)gql"sv, typeObjectId);
+	auto typeNamedPropInput = schema::InputObjectType::Make(R"gql(NamedPropInput)gql"sv, R"md(Named property ID description)md"sv);
+	schema->AddType(R"gql(NamedPropInput)gql"sv, typeNamedPropInput);
+	auto typePropValueInput = schema::InputObjectType::Make(R"gql(PropValueInput)gql"sv, R"md(Property value variant type)md"sv);
+	schema->AddType(R"gql(PropValueInput)gql"sv, typePropValueInput);
+	auto typeMultipleItemsInput = schema::InputObjectType::Make(R"gql(MultipleItemsInput)gql"sv, R"md(Properties which can be used to identify multiple items in the same folder for bulk operations)md"sv);
+	schema->AddType(R"gql(MultipleItemsInput)gql"sv, typeMultipleItemsInput);
+	auto typePropIdInput = schema::InputObjectType::Make(R"gql(PropIdInput)gql"sv, R"md(Property ID for either a built-in or named property)md"sv);
+	schema->AddType(R"gql(PropIdInput)gql"sv, typePropIdInput);
+	auto typePropertyInput = schema::InputObjectType::Make(R"gql(PropertyInput)gql"sv, R"md(Complete property type used for setting properties on items or folders)md"sv);
+	schema->AddType(R"gql(PropertyInput)gql"sv, typePropertyInput);
+	auto typeOrder = schema::InputObjectType::Make(R"gql(Order)gql"sv, R"md(Sort in ascending or descending order based on a single property.)md"sv);
+	schema->AddType(R"gql(Order)gql"sv, typeOrder);
+	auto typeColumn = schema::InputObjectType::Make(R"gql(Column)gql"sv, R"md(Add a column to the columns property on an object collection.)md"sv);
+	schema->AddType(R"gql(Column)gql"sv, typeColumn);
 	auto typeCreateItemInput = schema::InputObjectType::Make(R"gql(CreateItemInput)gql"sv, R"md(Properties which can be used to create a new item)md"sv);
 	schema->AddType(R"gql(CreateItemInput)gql"sv, typeCreateItemInput);
 	auto typeCreateSubFolderInput = schema::InputObjectType::Make(R"gql(CreateSubFolderInput)gql"sv, R"md(Properties which can be used to create a new sub-folder)md"sv);
@@ -351,20 +365,6 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(ModifyItemInput)gql"sv, typeModifyItemInput);
 	auto typeModifyFolderInput = schema::InputObjectType::Make(R"gql(ModifyFolderInput)gql"sv, R"md(Properties which can be used to modify an existing folder)md"sv);
 	schema->AddType(R"gql(ModifyFolderInput)gql"sv, typeModifyFolderInput);
-	auto typeMultipleItemsInput = schema::InputObjectType::Make(R"gql(MultipleItemsInput)gql"sv, R"md(Properties which can be used to identify multiple items in the same folder for bulk operations)md"sv);
-	schema->AddType(R"gql(MultipleItemsInput)gql"sv, typeMultipleItemsInput);
-	auto typeNamedPropInput = schema::InputObjectType::Make(R"gql(NamedPropInput)gql"sv, R"md(Named property ID description)md"sv);
-	schema->AddType(R"gql(NamedPropInput)gql"sv, typeNamedPropInput);
-	auto typePropIdInput = schema::InputObjectType::Make(R"gql(PropIdInput)gql"sv, R"md(Property ID for either a built-in or named property)md"sv);
-	schema->AddType(R"gql(PropIdInput)gql"sv, typePropIdInput);
-	auto typePropValueInput = schema::InputObjectType::Make(R"gql(PropValueInput)gql"sv, R"md(Property value variant type)md"sv);
-	schema->AddType(R"gql(PropValueInput)gql"sv, typePropValueInput);
-	auto typePropertyInput = schema::InputObjectType::Make(R"gql(PropertyInput)gql"sv, R"md(Complete property type used for setting properties on items or folders)md"sv);
-	schema->AddType(R"gql(PropertyInput)gql"sv, typePropertyInput);
-	auto typeOrder = schema::InputObjectType::Make(R"gql(Order)gql"sv, R"md(Sort in ascending or descending order based on a single property.)md"sv);
-	schema->AddType(R"gql(Order)gql"sv, typeOrder);
-	auto typeColumn = schema::InputObjectType::Make(R"gql(Column)gql"sv, R"md(Add a column to the columns property on an object collection.)md"sv);
-	schema->AddType(R"gql(Column)gql"sv, typeColumn);
 	auto typeAttachment = schema::UnionType::Make(R"gql(Attachment)gql"sv, R"md(Attachments can be either a file or another item.)md"sv);
 	schema->AddType(R"gql(Attachment)gql"sv, typeAttachment);
 	auto typeNamedPropId = schema::UnionType::Make(R"gql(NamedPropId)gql"sv, R"md()md"sv);
@@ -458,6 +458,41 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::InputValue::Make(R"gql(storeId)gql"sv, R"md(ID of the store containing the object)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ID")), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(objectId)gql"sv, R"md(ID of the object)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ID")), R"gql()gql"sv)
 	});
+	typeNamedPropInput->AddInputValues({
+		schema::InputValue::Make(R"gql(propset)gql"sv, R"md(Property set Guid)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Guid")), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Integer ID, mutually exclusive with `name`)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(name)gql"sv, R"md(String name, mutually exclusive with `id`)md"sv, schema->LookupType("String"), R"gql()gql"sv)
+	});
+	typePropValueInput->AddInputValues({
+		schema::InputValue::Make(R"gql(integer)gql"sv, R"md(Integer value, mutually exclusive with all other fields)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(boolean)gql"sv, R"md(Boolean value, mutually exclusive with all other fields)md"sv, schema->LookupType("Boolean"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(string)gql"sv, R"md(String value, mutually exclusive with all other fields)md"sv, schema->LookupType("String"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(guid)gql"sv, R"md(Guid value, mutually exclusive with all other fields)md"sv, schema->LookupType("Guid"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(time)gql"sv, R"md(DateTime value, mutually exclusive with all other fields)md"sv, schema->LookupType("DateTime"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(bin)gql"sv, R"md(Binary value, mutually exclusive with all other fields)md"sv, schema->LookupType("ID"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(stream)gql"sv, R"md(Stream value, mutually exclusive with all other fields)md"sv, schema->LookupType("Stream"), R"gql()gql"sv)
+	});
+	typeMultipleItemsInput->AddInputValues({
+		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Parent folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ObjectId")), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(itemIds)gql"sv, R"md(List of item IDs on which to perform the bulk operation)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ID")))), R"gql()gql"sv)
+	});
+	typePropIdInput->AddInputValues({
+		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Built-in property ID, mutually exclusive with `named`)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(named)gql"sv, R"md(Named property ID, mutually exclusive with `id`)md"sv, schema->LookupType("NamedPropInput"), R"gql()gql"sv)
+	});
+	typePropertyInput->AddInputValues({
+		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Property ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(value)gql"sv, R"md(Property value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropValueInput")), R"gql()gql"sv)
+	});
+	typeOrder->AddInputValues({
+		schema::InputValue::Make(R"gql(descending)gql"sv, R"md(True if the property values should be sorted in descending order, false if they should be sorted in ascending order (default))md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Boolean")), R"gql(false)gql"sv),
+		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropType")), R"gql()gql"sv)
+	});
+	typeColumn->AddInputValues({
+		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropType")), R"gql()gql"sv)
+	});
 	typeCreateItemInput->AddInputValues({
 		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Target folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ObjectId")), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(subject)gql"sv, R"md(Subject of the new item)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("String")), R"gql()gql"sv),
@@ -484,41 +519,6 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::InputValue::Make(R"gql(name)gql"sv, R"md(Optionally rename the folder)md"sv, schema->LookupType("String"), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(properties)gql"sv, R"md(List of properties to set/overwrite on the existing folder)md"sv, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropertyInput"))), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(deleted)gql"sv, R"md(List of properties to remove from the existing folder)md"sv, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput"))), R"gql()gql"sv)
-	});
-	typeMultipleItemsInput->AddInputValues({
-		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Parent folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ObjectId")), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(itemIds)gql"sv, R"md(List of item IDs on which to perform the bulk operation)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("ID")))), R"gql()gql"sv)
-	});
-	typeNamedPropInput->AddInputValues({
-		schema::InputValue::Make(R"gql(propset)gql"sv, R"md(Property set Guid)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Guid")), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Integer ID, mutually exclusive with `name`)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(name)gql"sv, R"md(String name, mutually exclusive with `id`)md"sv, schema->LookupType("String"), R"gql()gql"sv)
-	});
-	typePropIdInput->AddInputValues({
-		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Built-in property ID, mutually exclusive with `named`)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(named)gql"sv, R"md(Named property ID, mutually exclusive with `id`)md"sv, schema->LookupType("NamedPropInput"), R"gql()gql"sv)
-	});
-	typePropValueInput->AddInputValues({
-		schema::InputValue::Make(R"gql(integer)gql"sv, R"md(Integer value, mutually exclusive with all other fields)md"sv, schema->LookupType("Int"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(boolean)gql"sv, R"md(Boolean value, mutually exclusive with all other fields)md"sv, schema->LookupType("Boolean"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(string)gql"sv, R"md(String value, mutually exclusive with all other fields)md"sv, schema->LookupType("String"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(guid)gql"sv, R"md(Guid value, mutually exclusive with all other fields)md"sv, schema->LookupType("Guid"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(time)gql"sv, R"md(DateTime value, mutually exclusive with all other fields)md"sv, schema->LookupType("DateTime"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(bin)gql"sv, R"md(Binary value, mutually exclusive with all other fields)md"sv, schema->LookupType("ID"), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(stream)gql"sv, R"md(Stream value, mutually exclusive with all other fields)md"sv, schema->LookupType("Stream"), R"gql()gql"sv)
-	});
-	typePropertyInput->AddInputValues({
-		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Property ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(value)gql"sv, R"md(Property value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropValueInput")), R"gql()gql"sv)
-	});
-	typeOrder->AddInputValues({
-		schema::InputValue::Make(R"gql(descending)gql"sv, R"md(True if the property values should be sorted in descending order, false if they should be sorted in ascending order (default))md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("Boolean")), R"gql(false)gql"sv),
-		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropType")), R"gql()gql"sv)
-	});
-	typeColumn->AddInputValues({
-		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropIdInput")), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType("PropType")), R"gql()gql"sv)
 	});
 
 	typeAttachment->AddPossibleTypes({
@@ -630,5 +630,5 @@ std::shared_ptr<schema::Schema> GetSchema()
 	return schema;
 }
 
-} /* namespace mapi */
-} /* namespace graphql */
+} // namespace mapi
+} // namespace graphql

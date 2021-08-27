@@ -8,12 +8,11 @@
 #ifndef MAPISCHEMA_H
 #define MAPISCHEMA_H
 
-#include "graphqlservice/GraphQLSchema.h"
-#include "graphqlservice/GraphQLService.h"
+#include "graphqlservice/internal/Schema.h"
 
-// Check if the library version is compatible with schemagen 3.5.0
+// Check if the library version is compatible with schemagen 3.6.0
 static_assert(graphql::internal::MajorVersion == 3, "regenerate with schemagen: major version mismatch");
-static_assert(graphql::internal::MinorVersion == 5, "regenerate with schemagen: minor version mismatch");
+static_assert(graphql::internal::MinorVersion == 6, "regenerate with schemagen: minor version mismatch");
 
 #include <memory>
 #include <string>
@@ -47,23 +46,59 @@ enum class PropType
 	STREAM
 };
 
-struct ObjectId;
-struct CreateItemInput;
-struct CreateSubFolderInput;
-struct ModifyItemInput;
-struct ModifyFolderInput;
-struct MultipleItemsInput;
-struct NamedPropInput;
-struct PropIdInput;
-struct PropValueInput;
-struct PropertyInput;
-struct Order;
-struct Column;
-
 struct ObjectId
 {
 	response::IdType storeId;
 	response::IdType objectId;
+};
+
+struct NamedPropInput
+{
+	response::Value propset;
+	std::optional<response::IntType> id;
+	std::optional<response::StringType> name;
+};
+
+struct PropValueInput
+{
+	std::optional<response::IntType> integer;
+	std::optional<response::BooleanType> boolean;
+	std::optional<response::StringType> string;
+	std::optional<response::Value> guid;
+	std::optional<response::Value> time;
+	std::optional<response::IdType> bin;
+	std::optional<response::Value> stream;
+};
+
+struct MultipleItemsInput
+{
+	ObjectId folderId;
+	std::vector<response::IdType> itemIds;
+};
+
+struct PropIdInput
+{
+	std::optional<response::IntType> id;
+	std::optional<NamedPropInput> named;
+};
+
+struct PropertyInput
+{
+	PropIdInput id;
+	PropValueInput value;
+};
+
+struct Order
+{
+	response::BooleanType descending;
+	PropIdInput property;
+	PropType type;
+};
+
+struct Column
+{
+	PropIdInput property;
+	PropType type;
 };
 
 struct CreateItemInput
@@ -101,55 +136,6 @@ struct ModifyFolderInput
 	std::optional<std::vector<PropIdInput>> deleted;
 };
 
-struct MultipleItemsInput
-{
-	ObjectId folderId;
-	std::vector<response::IdType> itemIds;
-};
-
-struct NamedPropInput
-{
-	response::Value propset;
-	std::optional<response::IntType> id;
-	std::optional<response::StringType> name;
-};
-
-struct PropIdInput
-{
-	std::optional<response::IntType> id;
-	std::optional<NamedPropInput> named;
-};
-
-struct PropValueInput
-{
-	std::optional<response::IntType> integer;
-	std::optional<response::BooleanType> boolean;
-	std::optional<response::StringType> string;
-	std::optional<response::Value> guid;
-	std::optional<response::Value> time;
-	std::optional<response::IdType> bin;
-	std::optional<response::Value> stream;
-};
-
-struct PropertyInput
-{
-	PropIdInput id;
-	PropValueInput value;
-};
-
-struct Order
-{
-	response::BooleanType descending;
-	PropIdInput property;
-	PropType type;
-};
-
-struct Column
-{
-	PropIdInput property;
-	PropType type;
-};
-
 namespace object {
 
 class Query;
@@ -180,7 +166,7 @@ class FolderUpdated;
 class FolderRemoved;
 class FoldersReloaded;
 
-} /* namespace object */
+} // namespace object
 
 class Operations
 	: public service::Request
@@ -224,7 +210,7 @@ void AddFoldersReloadedDetails(std::shared_ptr<schema::ObjectType> typeFoldersRe
 
 std::shared_ptr<schema::Schema> GetSchema();
 
-} /* namespace mapi */
-} /* namespace graphql */
+} // namespace mapi
+} // namespace graphql
 
 #endif // MAPISCHEMA_H

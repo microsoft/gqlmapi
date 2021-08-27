@@ -99,7 +99,7 @@ std::future<service::ResolverResult> Conversation::resolve_typename(service::Res
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Conversation)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddConversationDetails(std::shared_ptr<schema::ObjectType> typeConversation, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -115,4 +115,4 @@ void AddConversationDetails(std::shared_ptr<schema::ObjectType> typeConversation
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

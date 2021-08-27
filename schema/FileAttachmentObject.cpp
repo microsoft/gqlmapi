@@ -78,7 +78,7 @@ std::future<service::ResolverResult> FileAttachment::resolve_typename(service::R
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(FileAttachment)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddFileAttachmentDetails(std::shared_ptr<schema::ObjectType> typeFileAttachment, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -92,4 +92,4 @@ void AddFileAttachmentDetails(std::shared_ptr<schema::ObjectType> typeFileAttach
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

@@ -68,7 +68,7 @@ std::future<service::ResolverResult> Subscription::resolve_typename(service::Res
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Subscription)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddSubscriptionDetails(std::shared_ptr<schema::ObjectType> typeSubscription, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -85,4 +85,4 @@ void AddSubscriptionDetails(std::shared_ptr<schema::ObjectType> typeSubscription
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

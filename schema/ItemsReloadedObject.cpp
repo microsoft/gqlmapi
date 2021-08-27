@@ -44,7 +44,7 @@ std::future<service::ResolverResult> ItemsReloaded::resolve_typename(service::Re
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(ItemsReloaded)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddItemsReloadedDetails(std::shared_ptr<schema::ObjectType> typeItemsReloaded, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddItemsReloadedDetails(std::shared_ptr<schema::ObjectType> typeItemsReload
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

@@ -44,7 +44,7 @@ std::future<service::ResolverResult> FoldersReloaded::resolve_typename(service::
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(FoldersReloaded)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddFoldersReloadedDetails(std::shared_ptr<schema::ObjectType> typeFoldersReloaded, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddFoldersReloadedDetails(std::shared_ptr<schema::ObjectType> typeFoldersRe
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

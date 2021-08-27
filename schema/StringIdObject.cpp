@@ -44,7 +44,7 @@ std::future<service::ResolverResult> StringId::resolve_typename(service::Resolve
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(StringId)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddStringIdDetails(std::shared_ptr<schema::ObjectType> typeStringId, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddStringIdDetails(std::shared_ptr<schema::ObjectType> typeStringId, const 
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

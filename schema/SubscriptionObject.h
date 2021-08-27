@@ -31,6 +31,6 @@ private:
 	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
 };
 
-} /* namespace graphql::mapi::object */
+} // namespace graphql::mapi::object
 
 #endif // SUBSCRIPTIONOBJECT_H

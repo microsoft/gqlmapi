@@ -55,7 +55,7 @@ std::future<service::ResolverResult> ItemRemoved::resolve_typename(service::Reso
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(ItemRemoved)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddItemRemovedDetails(std::shared_ptr<schema::ObjectType> typeItemRemoved, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -65,4 +65,4 @@ void AddItemRemovedDetails(std::shared_ptr<schema::ObjectType> typeItemRemoved, 
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

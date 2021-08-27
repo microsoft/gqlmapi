@@ -44,7 +44,7 @@ std::future<service::ResolverResult> GuidValue::resolve_typename(service::Resolv
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(GuidValue)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddGuidValueDetails(std::shared_ptr<schema::ObjectType> typeGuidValue, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddGuidValueDetails(std::shared_ptr<schema::ObjectType> typeGuidValue, cons
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

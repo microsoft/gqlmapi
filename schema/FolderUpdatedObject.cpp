@@ -55,7 +55,7 @@ std::future<service::ResolverResult> FolderUpdated::resolve_typename(service::Re
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(FolderUpdated)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddFolderUpdatedDetails(std::shared_ptr<schema::ObjectType> typeFolderUpdated, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -65,4 +65,4 @@ void AddFolderUpdatedDetails(std::shared_ptr<schema::ObjectType> typeFolderUpdat
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

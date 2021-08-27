@@ -188,7 +188,7 @@ std::future<service::ResolverResult> Item::resolve_typename(service::ResolverPar
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Item)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddItemDetails(std::shared_ptr<schema::ObjectType> typeItem, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -212,4 +212,4 @@ void AddItemDetails(std::shared_ptr<schema::ObjectType> typeItem, const std::sha
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

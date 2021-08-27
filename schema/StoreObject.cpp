@@ -115,7 +115,7 @@ std::future<service::ResolverResult> Store::resolve_typename(service::ResolverPa
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(Store)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddStoreDetails(std::shared_ptr<schema::ObjectType> typeStore, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -140,4 +140,4 @@ void AddStoreDetails(std::shared_ptr<schema::ObjectType> typeStore, const std::s
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

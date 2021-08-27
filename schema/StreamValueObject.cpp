@@ -44,7 +44,7 @@ std::future<service::ResolverResult> StreamValue::resolve_typename(service::Reso
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(StreamValue)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddStreamValueDetails(std::shared_ptr<schema::ObjectType> typeStreamValue, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddStreamValueDetails(std::shared_ptr<schema::ObjectType> typeStreamValue, 
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

@@ -44,7 +44,7 @@ std::future<service::ResolverResult> DateTimeValue::resolve_typename(service::Re
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(DateTimeValue)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddDateTimeValueDetails(std::shared_ptr<schema::ObjectType> typeDateTimeValue, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddDateTimeValueDetails(std::shared_ptr<schema::ObjectType> typeDateTimeVal
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

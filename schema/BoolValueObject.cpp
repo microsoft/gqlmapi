@@ -44,7 +44,7 @@ std::future<service::ResolverResult> BoolValue::resolve_typename(service::Resolv
 	return service::ModifiedResult<response::StringType>::convert(response::StringType{ R"gql(BoolValue)gql" }, std::move(params));
 }
 
-} /* namespace object */
+} // namespace object
 
 void AddBoolValueDetails(std::shared_ptr<schema::ObjectType> typeBoolValue, const std::shared_ptr<schema::Schema>& schema)
 {
@@ -53,4 +53,4 @@ void AddBoolValueDetails(std::shared_ptr<schema::ObjectType> typeBoolValue, cons
 	});
 }
 
-} /* namespace graphql::mapi */
+} // namespace graphql::mapi

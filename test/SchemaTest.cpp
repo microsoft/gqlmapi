@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <graphqlservice/JSONResponse.h>
+#include <graphqlservice/internal/Base64.h>
 
 #include "MockObjects.h"
 
@@ -156,8 +157,8 @@ constexpr auto objectId = "objectId"sv;
 
 const ObjectId folderId { { storeId.begin(), storeId.end() },
 	{ objectId.begin(), objectId.end() } };
-const auto storeIdEncoded = Base64::toBase64(folderId.storeId);
-const auto objectIdEncoded = Base64::toBase64(folderId.objectId);
+const auto storeIdEncoded = internal::Base64::toBase64(folderId.storeId);
+const auto objectIdEncoded = internal::Base64::toBase64(folderId.objectId);
 
 } // namespace
 
