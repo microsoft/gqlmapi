@@ -5,22 +5,26 @@
 
 #define NOMINMAX
 
-#include "MAPIObjects.h"
+#include "MAPISchema.h"
 
 #include <windows.h>
 
 // clang - format off
 #pragma warning(disable : 26426) // Warning C26426 Global initializer calls a non-constexpr (i.22)
-#pragma warning(disable : 26446) // Warning C26446 Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
-#pragma warning(disable : 26481) // Warning C26481 Don't use pointer arithmetic. Use span instead (bounds.1).
-#pragma warning(disable : 26485) // Warning C26485 Expression '': No array to pointer decay (bounds.3).
-#pragma warning(disable : 26487) // Warning C26487 Don't return a pointer '' that may be invalid (lifetime.4).
+#pragma warning(disable : 26446) // Warning C26446 Prefer to use gsl::at() instead of unchecked
+								 // subscript operator (bounds.4).
+#pragma warning(                                                                                   \
+	disable : 26481) // Warning C26481 Don't use pointer arithmetic. Use span instead (bounds.1).
+#pragma warning(                                                                                   \
+	disable : 26485) // Warning C26485 Expression '': No array to pointer decay (bounds.3).
+#pragma warning(                                                                                   \
+	disable : 26487) // Warning C26487 Don't return a pointer '' that may be invalid (lifetime.4).
 // clang-format on
 
-#include <mapix.h>
-#include <mapiutil.h>
-#include <mapi.h>
 #include <atlbase.h>
+#include <mapi.h>
+#include <mapiutil.h>
+#include <mapix.h>
 
 #include <algorithm>
 #include <array>
@@ -41,14 +45,16 @@ template <class SmartPointer>
 class out_ptr
 {
 public:
-	using UniquePointer = std::unique_ptr<typename SmartPointer::element_type, typename SmartPointer::deleter_type>;
+	using UniquePointer =
+		std::unique_ptr<typename SmartPointer::element_type, typename SmartPointer::deleter_type>;
 	using RawPointer = typename SmartPointer::pointer;
 
 	out_ptr(SmartPointer& ref)
-		: m_ref{ ref }
-		, m_ptr{ ref.release() }
+		: m_ref { ref }
+		, m_ptr { ref.release() }
 	{
-		static_assert(std::is_base_of_v<UniquePointer, SmartPointer>, "only valid for sub-classes of std::unique_ptr");
+		static_assert(std::is_base_of_v<UniquePointer, SmartPointer>,
+			"only valid for sub-classes of std::unique_ptr");
 	}
 
 	~out_ptr()
@@ -73,19 +79,19 @@ public:
 	using UniquePointer = std::unique_ptr<SRowSet, decltype(&::FreeProws)>;
 
 	rowset_ptr(LPSRowSet prows = nullptr) noexcept
-		: UniquePointer{ prows, ::FreeProws }
+		: UniquePointer { prows, ::FreeProws }
 	{
 	}
 };
 
-template<typename Type>
+template <typename Type>
 class mapi_ptr : public std::unique_ptr<Type, decltype(&::MAPIFreeBuffer)>
 {
 public:
 	using UniquePointer = std::unique_ptr<Type, decltype(&::MAPIFreeBuffer)>;
 
 	mapi_ptr(Type* ptr = nullptr) noexcept
-		: UniquePointer{ ptr, ::MAPIFreeBuffer }
+		: UniquePointer { ptr, ::MAPIFreeBuffer }
 	{
 	}
 };
@@ -111,7 +117,7 @@ public:
 	using Callback = std::function<void(size_t, LPNOTIFICATION)>;
 
 	explicit AdviseSinkProxy(Callback&& callback)
-		: m_callback{ std::move(callback) }
+		: m_callback { std::move(callback) }
 	{
 	}
 
@@ -143,8 +149,7 @@ public:
 			return E_POINTER;
 		}
 
-		if (riid == IID_IUnknown
-			|| riid == IID_IMAPIAdviseSink)
+		if (riid == IID_IUnknown || riid == IID_IMAPIAdviseSink)
 		{
 			*ppvObj = reinterpret_cast<void*>(this);
 			AddRef();
@@ -181,12 +186,13 @@ public:
 private:
 	Callback m_callback;
 	CComPtr<_Interface> m_source;
-	ULONG_PTR m_connectionId{ 0 };
-	std::atomic<ULONG> m_refcount{ 1 };
+	ULONG_PTR m_connectionId { 0 };
+	std::atomic<ULONG> m_refcount { 1 };
 };
 
 // Additional property tags which MAPIStubLibrary doesn't know about.
-constexpr ULONG PR_CONVERSATION_ID = PROP_TAG(PT_BINARY, 0x3013);	// https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/7fdd0560-5e41-4518-bfbb-0c5a6eb6be6c
+constexpr ULONG PR_CONVERSATION_ID = PROP_TAG(PT_BINARY,
+	0x3013); // https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/7fdd0560-5e41-4518-bfbb-0c5a6eb6be6c
 
 // Forward declarations
 class Store;
@@ -194,78 +200,82 @@ class Folder;
 class Item;
 class Property;
 
-class Query : public object::Query
+class Query : public std::enable_shared_from_this<Query>
 {
 public:
 	explicit Query(const std::shared_ptr<Session>& session);
-	~Query() override;
+	~Query();
 
 	// Accessors used by other MAPIGraphQL classes
-	const std::vector<std::shared_ptr<Store>>& stores() const;
-	std::shared_ptr<Store> lookup(const response::IdType& id) const;
+	const std::vector<std::shared_ptr<Store>>& stores();
+	std::shared_ptr<Store> lookup(const response::IdType& id);
 
 	// Clear cached folders and items in all stores.
-	void ClearCaches() const;
+	void ClearCaches();
 
-private:
 	// Clear the folder and item caches at the end of the selection set.
-	void endSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params);
 
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<object::Store>>> getStores(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
+	std::vector<std::shared_ptr<object::Store>> getStores(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg);
 
+private:
 	std::shared_ptr<Session> m_session;
 
 	// These lazy load and cache results between calls to const methods.
-	void LoadStores(response::Value&& fieldDirectives) const;
+	void LoadStores(service::Directives&& fieldDirectives);
 
-	mutable std::unique_ptr<std::map<response::IdType, size_t>> m_ids;
-	mutable std::unique_ptr<std::vector<std::shared_ptr<Store>>> m_stores;
-	mutable CComPtr<AdviseSinkProxy<IMAPITable>> m_storeSink;
-	mutable response::Value m_storeDirectives;
+	std::unique_ptr<std::map<response::IdType, size_t>> m_ids;
+	std::unique_ptr<std::vector<std::shared_ptr<Store>>> m_stores;
+	CComPtr<AdviseSinkProxy<IMAPITable>> m_storeSink;
+	service::Directives m_storeDirectives;
 };
 
-class Mutation : public object::Mutation
+class Mutation
 {
 public:
 	explicit Mutation(const std::shared_ptr<Query>& query);
-	~Mutation() override;
+	~Mutation();
 
 	// Accessors used by other MAPIGraphQL classes
-	bool CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg, bool moveItems) const;
+	bool CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg, bool moveItems);
 
-private:
 	// Clear the folder and item caches at the end of the selection set.
-	void endSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params);
 
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::shared_ptr<object::Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const override;
-	service::FieldResult<std::shared_ptr<object::Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const override;
-	service::FieldResult<response::BooleanType> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, response::BooleanType&& hardDeleteArg) const override;
-	service::FieldResult<response::BooleanType> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& readArg) const override;
-	service::FieldResult<response::BooleanType> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const override;
-	service::FieldResult<response::BooleanType> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const override;
-	service::FieldResult<response::BooleanType> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& hardDeleteArg) const override;
+	std::shared_ptr<object::Item> applyCreateItem(CreateItemInput&& inputArg);
+	std::shared_ptr<object::Folder> applyCreateSubFolder(CreateSubFolderInput&& inputArg);
+	std::shared_ptr<object::Item> applyModifyItem(ModifyItemInput&& inputArg);
+	std::shared_ptr<object::Folder> applyModifyFolder(ModifyFolderInput&& inputArg);
+	bool applyRemoveFolder(ObjectId&& inputArg, bool hardDeleteArg);
+	bool applyMarkAsRead(MultipleItemsInput&& inputArg, bool readArg);
+	bool applyCopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg);
+	bool applyMoveItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg);
+	bool applyDeleteItems(MultipleItemsInput&& inputArg, bool hardDeleteArg);
 
+private:
 	std::shared_ptr<Query> m_query;
 };
 
-class Subscription : public object::Subscription
+class Subscription : public std::enable_shared_from_this<Subscription>
 {
 public:
 	explicit Subscription(const std::shared_ptr<Query>& query);
-	~Subscription() override;
+	~Subscription();
 
 	void setService(const std::shared_ptr<Operations>& service) noexcept;
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const override;
+	std::vector<std::shared_ptr<object::ItemChange>> getItems(
+		service::FieldParams&& params, ObjectId&& folderIdArg);
+	std::vector<std::shared_ptr<object::FolderChange>> getSubFolders(
+		service::FieldParams&& params, ObjectId&& parentFolderIdArg);
+	std::vector<std::shared_ptr<object::FolderChange>> getRootFolders(
+		service::FieldParams&& params, response::IdType&& storeIdArg);
 
+private:
 	// These are all initialized at construction.
 	std::shared_ptr<Query> m_query;
 
@@ -276,7 +286,7 @@ private:
 	{
 		// These form the key in each set of registrations.
 		ObjectId objectId;
-		response::Value directives;
+		service::Directives directives;
 
 		// Enable < comparisons so it can be used a std::multiset.
 		bool operator<(const RegistrationKey& rhs) const noexcept;
@@ -317,7 +327,7 @@ private:
 	};
 
 	template <class T, class ArgumentType, class PayloadType>
-	void RegisterAdviseSinkProxy(std::launch launch, std::string&& fieldName,
+	void RegisterAdviseSinkProxy(service::await_async launch, std::string&& fieldName,
 		std::string_view argumentName, const ArgumentType& argumentValue,
 		Registration<T>& registration) const;
 
@@ -344,9 +354,11 @@ private:
 class TableDirectives
 {
 public:
-	explicit TableDirectives(const std::shared_ptr<const Store>& store, const response::Value& fieldDirectives) noexcept;
+	explicit TableDirectives(
+		const std::shared_ptr<Store>& store, const service::Directives& fieldDirectives) noexcept;
 
-	rowset_ptr read(IMAPITable* pTable, mapi_ptr<SPropTagArray>&& defaultColumns, mapi_ptr<SSortOrderSet>&& defaultOrder = {}) const;
+	rowset_ptr read(IMAPITable* pTable, mapi_ptr<SPropTagArray>&& defaultColumns,
+		mapi_ptr<SSortOrderSet>&& defaultOrder = {}) const;
 
 private:
 	mapi_ptr<SPropTagArray> columns(mapi_ptr<SPropTagArray>&& defaultColumns) const;
@@ -356,29 +368,32 @@ private:
 	LONG offset() const;
 	LONG take() const;
 
-	const std::shared_ptr<const Store> m_store;
+	const std::shared_ptr<Store> m_store;
 	const std::optional<std::vector<Column>> m_columns;
 	const std::optional<std::vector<Order>> m_orderBy;
 	const std::optional<std::optional<response::IdType>> m_seek;
-	const std::optional<response::IntType> m_offset;
-	const std::optional<response::IntType> m_take;
+	const std::optional<int> m_offset;
+	const std::optional<int> m_take;
 };
 
 struct CompareMAPINAMEID
 {
-	bool operator()(const mapi_ptr<MAPINAMEID>& lhs, const mapi_ptr<MAPINAMEID>& rhs) const noexcept;
+	bool operator()(
+		const mapi_ptr<MAPINAMEID>& lhs, const mapi_ptr<MAPINAMEID>& rhs) const noexcept;
 };
 
 using NameIdToPropId = std::map<mapi_ptr<MAPINAMEID>, ULONG, CompareMAPINAMEID>;
 
-class Store : public object::Store
+class Store : public std::enable_shared_from_this<Store>
 {
 public:
-	explicit Store(const CComPtr<IMAPISession>& session, size_t columnCount, mapi_ptr<SPropValue>&& columns);
-	~Store() override;
+	explicit Store(
+		const CComPtr<IMAPISession>& session, size_t columnCount, mapi_ptr<SPropValue>&& columns);
+	~Store();
 
 	// Accessors used by other MAPIGraphQL classes
-	enum class DefaultColumn : size_t {
+	enum class DefaultColumn : size_t
+	{
 		Id,
 		Name,
 		Count
@@ -386,7 +401,7 @@ public:
 
 	static constexpr std::array<ULONG, static_cast<size_t>(DefaultColumn::Count)> GetStoreColumns()
 	{
-		constexpr std::array storeProps{
+		constexpr std::array storeProps {
 			PR_ENTRYID,
 			PR_DISPLAY_NAME_W,
 		};
@@ -396,92 +411,101 @@ public:
 
 	static constexpr std::array<SSortOrder, 1> GetStoreSorts()
 	{
-		return {
-			SSortOrder { PR_DISPLAY_NAME_W, TABLE_SORT_ASCEND }
-		};
+		return { SSortOrder { PR_DISPLAY_NAME_W, TABLE_SORT_ASCEND } };
 	}
 
-	const CComPtr<IMsgStore>& store() const;
+	const CComPtr<IMsgStore>& store();
 	const response::IdType& id() const;
 	const response::IdType& rootId() const;
-	const std::vector<std::shared_ptr<Folder>>& rootFolders() const;
-	std::shared_ptr<Folder> lookupRootFolder(const response::IdType& id) const;
-	const std::map<SpecialFolder, response::IdType>& specialFolders() const;
-	std::shared_ptr<Folder> lookupSpecialFolder(SpecialFolder id) const;
-	std::vector<std::pair<ULONG, LPMAPINAMEID>> lookupPropIdInputs(std::vector<PropIdInput>&& namedProps) const;
-	std::vector<std::pair<ULONG, LPMAPINAMEID>> lookupPropIds(const std::vector<ULONG>& propIds) const;
+	const std::vector<std::shared_ptr<Folder>>& rootFolders();
+	std::shared_ptr<Folder> lookupRootFolder(const response::IdType& id);
+	const std::map<SpecialFolder, response::IdType>& specialFolders();
+	std::shared_ptr<Folder> lookupSpecialFolder(SpecialFolder id);
+	std::vector<std::pair<ULONG, LPMAPINAMEID>> lookupPropIdInputs(
+		std::vector<PropIdInput>&& namedProps);
+	std::vector<std::pair<ULONG, LPMAPINAMEID>> lookupPropIds(const std::vector<ULONG>& propIds);
 
 	// Utility methods which help with converting between input types and MAPI types
-	std::vector<std::shared_ptr<object::Property>> GetColumns(size_t columnCount, const LPSPropValue columns) const;
-	std::vector<std::shared_ptr<object::Property>> GetProperties(IMAPIProp* pObject, std::optional<std::vector<Column>>&& idsArg) const;
-	void ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSPropValue propEnd, std::vector<PropertyInput>&& input) const;
+	std::vector<std::shared_ptr<object::Property>> GetColumns(
+		size_t columnCount, const LPSPropValue columns);
+	std::vector<std::shared_ptr<object::Property>> GetProperties(
+		IMAPIProp* pObject, std::optional<std::vector<Column>>&& idsArg);
+	void ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSPropValue propEnd,
+		std::vector<PropertyInput>&& input);
 
 	// Open and cache folders and items
-	std::shared_ptr<Folder> OpenFolder(const response::IdType& folderId) const;
-	std::shared_ptr<Item> OpenItem(const response::IdType& itemId) const;
-	void CacheFolder(const std::shared_ptr<Folder>& folder) const;
-	void CacheItem(const std::shared_ptr<Item>& item) const;
-	void ClearCaches() const;
+	std::shared_ptr<Folder> OpenFolder(const response::IdType& folderId);
+	std::shared_ptr<Item> OpenItem(const response::IdType& itemId);
+	void CacheFolder(const std::shared_ptr<Folder>& folder);
+	void CacheItem(const std::shared_ptr<Item>& item);
+	void ClearCaches();
+
+	// Resolvers/Accessors which implement the GraphQL type
+	const response::IdType& getId() const;
+	const std::string& getName() const;
+	std::vector<std::shared_ptr<object::Property>> getColumns();
+	std::vector<std::shared_ptr<object::Folder>> getRootFolders(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg);
+	std::vector<std::shared_ptr<object::Folder>> getSpecialFolders(
+		std::vector<SpecialFolder>&& idsArg);
+	std::vector<std::shared_ptr<object::Property>> getFolderProperties(
+		response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg);
+	std::vector<std::shared_ptr<object::Property>> getItemProperties(
+		response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg);
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IdType> getId(service::FieldParams&& params) const override;
-	service::FieldResult<response::StringType> getName(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Property>>> getColumns(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const override;
-
 	// Used during construction
 	const SPropValue& GetColumnProp(DefaultColumn column) const;
 	response::IdType GetIdColumn(DefaultColumn column) const;
-	response::StringType GetStringColumn(DefaultColumn column) const;
+	std::string GetStringColumn(DefaultColumn column) const;
 
 	// These are all initialized at construction.
 	const CComPtr<IMAPISession> m_session;
 	const size_t m_columnCount;
 	const mapi_ptr<SPropValue> m_columns;
 	const response::IdType m_id;
-	const response::StringType m_name;
+	const std::string m_name;
 
 	// These lazy load and cache results between calls to const methods.
-	void OpenStore() const;
-	void LoadSpecialFolders() const;
-	void LoadRootFolders(response::Value&& fieldDirectives) const;
+	void OpenStore();
+	void LoadSpecialFolders();
+	void LoadRootFolders(service::Directives&& fieldDirectives);
 	mapi_ptr<SPropTagArray> GetFolderProperties() const;
 	mapi_ptr<SPropTagArray> GetItemProperties() const;
 
-	// Utility methods to populate our cached special folder IDs from multiple properties on the store and folders.
+	// Utility methods to populate our cached special folder IDs from multiple properties on the
+	// store and folders.
 	static void FillInStoreProps(LPSPropValue storeIds, std::map<SpecialFolder, SBinary>& idMap);
 	static void FillInFolderProps(LPSPropValue folderIds, std::map<SpecialFolder, SBinary>& idMap);
 
-	mutable CComPtr<IMsgStore> m_store;
-	mutable response::IdType m_rootId;
-	mutable CComPtr<IMAPIFolder> m_ipmSubtree;
-	mutable mapi_ptr<SPropValue> m_storeProps;
-	mutable mapi_ptr<SPropValue> m_ipmSubtreeProps;
-	mutable mapi_ptr<SPropValue> m_inboxProps;
-	mutable ULONG m_cbInboxId = 0;
-	mutable mapi_ptr<ENTRYID> m_eidInboxId;
-	mutable std::unique_ptr<std::vector<std::shared_ptr<Folder>>> m_rootFolders;
-	mutable std::unique_ptr<std::map<response::IdType, size_t>> m_rootFolderIds;
-	mutable CComPtr<AdviseSinkProxy<IMAPITable>> m_rootFolderSink;
-	mutable response::Value m_rootFolderDirectives;
-	mutable std::unique_ptr<std::map<SpecialFolder, response::IdType>> m_specialFolders;
-	mutable NameIdToPropId m_nameIdToPropIds;
-	mutable std::map<response::IdType, std::shared_ptr<Folder>> m_folderCache;
-	mutable std::map<response::IdType, std::shared_ptr<Item>> m_itemCache;
+	CComPtr<IMsgStore> m_store;
+	response::IdType m_rootId;
+	CComPtr<IMAPIFolder> m_ipmSubtree;
+	mapi_ptr<SPropValue> m_storeProps;
+	mapi_ptr<SPropValue> m_ipmSubtreeProps;
+	mapi_ptr<SPropValue> m_inboxProps;
+	ULONG m_cbInboxId = 0;
+	mapi_ptr<ENTRYID> m_eidInboxId;
+	std::unique_ptr<std::vector<std::shared_ptr<Folder>>> m_rootFolders;
+	std::unique_ptr<std::map<response::IdType, size_t>> m_rootFolderIds;
+	CComPtr<AdviseSinkProxy<IMAPITable>> m_rootFolderSink;
+	service::Directives m_rootFolderDirectives;
+	std::unique_ptr<std::map<SpecialFolder, response::IdType>> m_specialFolders;
+	NameIdToPropId m_nameIdToPropIds;
+	std::map<response::IdType, std::shared_ptr<Folder>> m_folderCache;
+	std::map<response::IdType, std::shared_ptr<Item>> m_itemCache;
 };
 
-class Folder : public object::Folder
+class Folder : public std::enable_shared_from_this<Folder>
 {
 public:
-	explicit Folder(const std::shared_ptr<const Store>& store, IMAPIFolder* pFolder, size_t columnCount, mapi_ptr<SPropValue>&& columns);
-	~Folder() override;
+	explicit Folder(const std::shared_ptr<Store>& store, IMAPIFolder* pFolder, size_t columnCount,
+		mapi_ptr<SPropValue>&& columns);
+	~Folder();
 
 	// Accessors used by other MAPIGraphQL classes
-	enum class DefaultColumn : size_t {
+	enum class DefaultColumn : size_t
+	{
 		InstanceKey,
 		Id,
 		ParentId,
@@ -493,7 +517,7 @@ public:
 
 	static constexpr std::array<ULONG, static_cast<size_t>(DefaultColumn::Count)> GetFolderColumns()
 	{
-		constexpr std::array folderProps{
+		constexpr std::array folderProps {
 			PR_INSTANCE_KEY,
 			PR_ENTRYID,
 			PR_PARENT_ENTRYID,
@@ -507,78 +531,81 @@ public:
 
 	static constexpr std::array<SSortOrder, 1> GetFolderSorts()
 	{
-		return {
-			SSortOrder { PR_DISPLAY_NAME_W, TABLE_SORT_ASCEND }
-		};
+		return { SSortOrder { PR_DISPLAY_NAME_W, TABLE_SORT_ASCEND } };
 	}
 
 	const response::IdType& instanceKey() const;
 	const response::IdType& id() const;
-	const response::StringType& name() const;
-	response::IntType count() const;
-	response::IntType unread() const;
-	const CComPtr<IMAPIFolder>& folder() const;
-	const std::vector<std::shared_ptr<Folder>>& subFolders() const;
+	const std::string& name() const;
+	int count() const;
+	int unread() const;
+	const CComPtr<IMAPIFolder>& folder();
+	const std::vector<std::shared_ptr<Folder>>& subFolders();
 	std::shared_ptr<Folder> parentFolder() const;
-	std::shared_ptr<Folder> lookupSubFolder(const response::IdType& id) const;
-	const std::vector<std::shared_ptr<Item>>& items() const;
-	std::shared_ptr<Item> lookupItem(const response::IdType& id) const;
+	std::shared_ptr<Folder> lookupSubFolder(const response::IdType& id);
+	const std::vector<std::shared_ptr<Item>>& items();
+	std::shared_ptr<Item> lookupItem(const response::IdType& id);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	const response::IdType& getId() const;
+	std::shared_ptr<object::Folder> getParentFolder() const;
+	std::shared_ptr<object::Store> getStore() const;
+	const std::string& getName() const;
+	int getCount() const;
+	int getUnread() const;
+	std::optional<SpecialFolder> getSpecialFolder() const;
+	std::vector<std::shared_ptr<object::Property>> getColumns() const;
+	std::vector<std::shared_ptr<object::Folder>> getSubFolders(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg);
+	std::vector<std::shared_ptr<object::Conversation>> getConversations(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg);
+	std::vector<std::shared_ptr<object::Item>> getItems(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg);
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IdType> getId(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> getParentFolder(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Store>> getStore(service::FieldParams&& params) const override;
-	service::FieldResult<response::StringType> getName(service::FieldParams&& params) const override;
-	service::FieldResult<response::IntType> getCount(service::FieldParams&& params) const override;
-	service::FieldResult<response::IntType> getUnread(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<SpecialFolder>> getSpecialFolder(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Property>>> getColumns(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> getSubFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Conversation>>> getConversations(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
-
 	// Used during construction
 	const SPropValue& GetColumnProp(DefaultColumn column) const;
 	response::IdType GetIdColumn(DefaultColumn column) const;
-	response::StringType GetStringColumn(DefaultColumn column) const;
-	response::IntType GetIntColumn(DefaultColumn column) const;
+	std::string GetStringColumn(DefaultColumn column) const;
+	int GetIntColumn(DefaultColumn column) const;
 
 	// These are all initialized at construction.
-	const std::weak_ptr<const Store> m_store;
+	const std::weak_ptr<Store> m_store;
 	const size_t m_columnCount;
 	const mapi_ptr<SPropValue> m_columns;
 	const response::IdType m_instanceKey;
 	const response::IdType m_id;
 	const response::IdType m_parentId;
-	const response::StringType m_name;
-	const response::IntType m_count;
-	const response::IntType m_unread;
+	const std::string m_name;
+	const int m_count;
+	const int m_unread;
 	const std::optional<SpecialFolder> m_specialFolder;
 
 	// These lazy load and cache results between calls to const methods.
-	void OpenFolder() const;
-	void LoadSubFolders(response::Value&& fieldDirectives) const;
-	void LoadItems(response::Value&& fieldDirectives) const;
+	void OpenFolder();
+	void LoadSubFolders(service::Directives&& fieldDirectives);
+	void LoadItems(service::Directives&& fieldDirectives);
 
-	mutable CComPtr<IMAPIFolder> m_folder;
-	mutable std::unique_ptr<std::map<response::IdType, size_t>> m_subFolderIds;
-	mutable std::unique_ptr<std::vector<std::shared_ptr<Folder>>> m_subFolders;
-	mutable CComPtr<AdviseSinkProxy<IMAPITable>> m_subFolderSink;
-	mutable response::Value m_subFolderDirectives;
-	mutable std::unique_ptr<std::map<response::IdType, size_t>> m_itemIds;
-	mutable std::unique_ptr<std::vector<std::shared_ptr<Item>>> m_items;
-	mutable CComPtr<AdviseSinkProxy<IMAPITable>> m_itemSink;
-	mutable response::Value m_itemDirectives;
+	CComPtr<IMAPIFolder> m_folder;
+	std::unique_ptr<std::map<response::IdType, size_t>> m_subFolderIds;
+	std::unique_ptr<std::vector<std::shared_ptr<Folder>>> m_subFolders;
+	CComPtr<AdviseSinkProxy<IMAPITable>> m_subFolderSink;
+	service::Directives m_subFolderDirectives;
+	std::unique_ptr<std::map<response::IdType, size_t>> m_itemIds;
+	std::unique_ptr<std::vector<std::shared_ptr<Item>>> m_items;
+	CComPtr<AdviseSinkProxy<IMAPITable>> m_itemSink;
+	service::Directives m_itemDirectives;
 };
 
-class Item : public object::Item
+class Item : public std::enable_shared_from_this<Item>
 {
 public:
-	explicit Item(const std::shared_ptr<const Store>& store, IMessage* pMessage, size_t columnCount, mapi_ptr<SPropValue>&& columns);
+	explicit Item(const std::shared_ptr<Store>& store, IMessage* pMessage, size_t columnCount,
+		mapi_ptr<SPropValue>&& columns);
 
 	// Accessors used by other MAPIGraphQL classes
-	enum class DefaultColumn : size_t {
+	enum class DefaultColumn : size_t
+	{
 		InstanceKey,
 		Id,
 		ParentId,
@@ -612,347 +639,353 @@ public:
 
 	static constexpr std::array<SSortOrder, 1> GetItemSorts()
 	{
-		return {
-			SSortOrder { PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND }
-		};
+		return { SSortOrder { PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND } };
 	}
 
 	const response::IdType& instanceKey() const;
 	const response::IdType& id() const;
-	const response::StringType& subject() const;
-	const std::optional<response::StringType>& sender() const;
-	const std::optional<response::StringType>& to() const;
-	const std::optional<response::StringType>& cc() const;
-	response::BooleanType read() const;
+	const std::string& subject() const;
+	const std::optional<std::string>& sender() const;
+	const std::optional<std::string>& to() const;
+	const std::optional<std::string>& cc() const;
+	bool read() const;
 	const FILETIME& received() const;
 	const FILETIME& modified() const;
-	const std::optional<response::StringType>& preview() const;
-	const CComPtr<IMessage>& message() const;
+	const std::optional<std::string>& preview() const;
+	const CComPtr<IMessage>& message();
+
+	// Resolvers/Accessors which implement the GraphQL type
+	const response::IdType& getId() const;
+	std::shared_ptr<object::Folder> getParentFolder() const;
+	std::shared_ptr<object::Conversation> getConversation(service::FieldParams&& params) const;
+	const std::string& getSubject() const;
+	std::optional<std::string> getSender() const;
+	std::optional<std::string> getTo() const;
+	std::optional<std::string> getCc() const;
+	std::optional<response::Value> getBody(service::FieldParams&& params) const;
+	bool getRead() const;
+	std::optional<response::Value> getReceived() const;
+	std::optional<response::Value> getModified() const;
+	std::optional<std::string> getPreview() const;
+	std::vector<std::shared_ptr<object::Property>> getColumns() const;
+	std::vector<std::shared_ptr<object::Attachment>> getAttachments(
+		service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IdType> getId(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> getParentFolder(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Conversation>> getConversation(service::FieldParams&& params) const override;
-	service::FieldResult<response::StringType> getSubject(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::StringType>> getSender(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::StringType>> getTo(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::StringType>> getCc(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::Value>> getBody(service::FieldParams&& params) const override;
-	service::FieldResult<response::BooleanType> getRead(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::Value>> getReceived(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::Value>> getModified(service::FieldParams&& params) const override;
-	service::FieldResult<std::optional<response::StringType>> getPreview(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<object::Property>>> getColumns(service::FieldParams&& params) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getAttachments(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override;
-
 	// Used during construction
 	const SPropValue& GetColumnProp(DefaultColumn column) const;
 	response::IdType GetIdColumn(DefaultColumn column) const;
-	response::StringType GetStringColumn(DefaultColumn column) const;
-	response::BooleanType GetReadColumn(DefaultColumn column) const;
+	std::string GetStringColumn(DefaultColumn column) const;
+	bool GetReadColumn(DefaultColumn column) const;
 	FILETIME GetTimeColumn(DefaultColumn column) const;
 
 	// These are all initialized at construction.
-	const std::weak_ptr<const Store> m_store;
+	const std::weak_ptr<Store> m_store;
 	const size_t m_columnCount;
 	const mapi_ptr<SPropValue> m_columns;
 	const response::IdType m_instanceKey;
 	const response::IdType m_id;
 	const response::IdType m_parentId;
-	const response::StringType m_subject;
-	const std::optional<response::StringType> m_sender;
-	const std::optional<response::StringType> m_to;
-	const std::optional<response::StringType> m_cc;
-	const response::BooleanType m_read;
+	const std::string m_subject;
+	const std::optional<std::string> m_sender;
+	const std::optional<std::string> m_to;
+	const std::optional<std::string> m_cc;
+	const bool m_read;
 	const FILETIME m_received;
 	const FILETIME m_modified;
-	const std::optional<response::StringType> m_preview;
+	const std::optional<std::string> m_preview;
 
 	// These lazy load and cache results between calls to const methods.
-	void OpenItem() const;
+	void OpenItem();
 
-	mutable CComPtr<IMessage> m_message;
+	CComPtr<IMessage> m_message;
 };
 
-class Property : public object::Property
+class Property
 {
 public:
 	using id_variant = std::variant<ULONG, MAPINAMEID>;
 
 	explicit Property(const id_variant& id, mapi_ptr<SPropValue>&& value);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::shared_ptr<service::Object>> getId(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<service::Object>> getValue(service::FieldParams&& params) const override;
+	std::shared_ptr<object::PropId> getId() const;
+	std::shared_ptr<object::PropValue> getValue() const;
 
-	const std::shared_ptr<service::Object> m_id;
+private:
+	const std::shared_ptr<object::PropId> m_id;
 	const mapi_ptr<SPropValue> m_value;
 };
 
-class IntId : public object::IntId
+class IntId
 {
 public:
 	explicit IntId(ULONG id);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getId(service::FieldParams&& params) const override;
+	int getId() const;
 
+private:
 	const ULONG m_id;
 };
 
-class NamedId : public object::NamedId
+class NamedId
 {
 public:
 	explicit NamedId(const MAPINAMEID& named);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::Value> getPropset(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<service::Object>> getId(service::FieldParams&& params) const override;
+	response::Value getPropset() const;
+	std::shared_ptr<object::NamedPropId> getId() const;
 
+private:
 	const GUID m_propset;
-	const std::shared_ptr<service::Object> m_named;
+	const std::shared_ptr<object::NamedPropId> m_named;
 };
 
-class StringId : public object::StringId
+class StringId
 {
 public:
 	explicit StringId(PCWSTR name);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::StringType> getName(service::FieldParams&& params) const override;
+	const std::string& getName() const;
 
-	const std::wstring m_name;
+private:
+	const std::string m_name;
 };
 
-class IntValue : public object::IntValue
+class IntValue
 {
 public:
-	explicit IntValue(response::IntType value);
+	explicit IntValue(int value);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getValue() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getValue(service::FieldParams&& params) const override;
-
-	const response::IntType m_value;
+	const int m_value;
 };
 
-class BoolValue : public object::BoolValue
+class BoolValue
 {
 public:
-	explicit BoolValue(response::BooleanType value);
+	explicit BoolValue(bool value);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	bool getValue() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::BooleanType> getValue(service::FieldParams&& params) const override;
-
-	const response::BooleanType m_value;
+	const bool m_value;
 };
 
-class StringValue : public object::StringValue
+class StringValue
 {
 public:
 	explicit StringValue(PCWSTR value);
 	explicit StringValue(std::string&& value);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::StringType> getValue(service::FieldParams&& params) const override;
+	const std::string& getValue() const;
 
-	const response::StringType m_value;
+private:
+	const std::string m_value;
 };
 
-class GuidValue : public object::GuidValue
+class GuidValue
 {
 public:
 	explicit GuidValue(const GUID& value);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::Value> getValue(service::FieldParams&& params) const override;
+	response::Value getValue() const;
 
+private:
 	const GUID m_value;
 };
 
-class DateTimeValue : public object::DateTimeValue
+class DateTimeValue
 {
 public:
 	explicit DateTimeValue(const FILETIME& value);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::Value> getValue(service::FieldParams&& params) const override;
+	response::Value getValue() const;
 
+private:
 	const FILETIME m_value;
 };
 
-class BinaryValue : public object::BinaryValue
+class BinaryValue
 {
 public:
 	explicit BinaryValue(const SBinary& value);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IdType> getValue(service::FieldParams&& params) const override;
+	const response::IdType& getValue() const;
 
+private:
 	const response::IdType m_value;
 };
 
-class ItemAdded : public object::ItemAdded
+class ItemAdded
 {
 public:
-	explicit ItemAdded(response::IntType index, const std::shared_ptr<Item>& added);
+	explicit ItemAdded(int index, const std::shared_ptr<Item>& added);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getIndex() const;
+	std::shared_ptr<object::Item> getAdded() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Item>> getAdded(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const std::shared_ptr<Item> m_added;
 };
 
-class ItemUpdated : public object::ItemUpdated
+class ItemUpdated
 {
 public:
-	explicit ItemUpdated(response::IntType index, const std::shared_ptr<Item>& updated);
+	explicit ItemUpdated(int index, const std::shared_ptr<Item>& updated);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getIndex() const;
+	std::shared_ptr<object::Item> getUpdated() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Item>> getUpdated(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const std::shared_ptr<Item> m_updated;
 };
 
-class ItemRemoved : public object::ItemRemoved
+class ItemRemoved
 {
 public:
-	explicit ItemRemoved(response::IntType index, const response::IdType& removed);
+	explicit ItemRemoved(int index, const response::IdType& removed);
+
+	int getIndex() const;
+	const response::IdType& getRemoved() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<response::IdType> getRemoved(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const response::IdType m_removed;
 };
 
-class ItemsReloaded : public object::ItemsReloaded
+class ItemsReloaded
 {
 public:
 	explicit ItemsReloaded(const std::vector<std::shared_ptr<Item>>& reloaded);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<object::Item>>> getReloaded(service::FieldParams&& params) const override;
+	std::vector<std::shared_ptr<object::Item>> getReloaded() const;
 
+private:
 	const std::vector<std::shared_ptr<Item>> m_reloaded;
 };
 
-class ItemsSubscription : public object::Subscription
+class ItemsSubscription
 {
 public:
-	explicit ItemsSubscription(std::vector<std::shared_ptr<service::Object>>&& items);
+	explicit ItemsSubscription(std::vector<std::shared_ptr<object::ItemChange>>&& items);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	std::vector<std::shared_ptr<object::ItemChange>> getItems(ObjectId&& folderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getSubFolders(
+		ObjectId&& parentFolderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getRootFolders(
+		response::IdType&& storeIdArg) const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const override;
-
 	// These are all initialized at construction.
-	std::vector<std::shared_ptr<service::Object>> m_items;
+	std::vector<std::shared_ptr<object::ItemChange>> m_items;
 };
 
-class FolderAdded : public object::FolderAdded
+class FolderAdded
 {
 public:
-	explicit FolderAdded(response::IntType index, const std::shared_ptr<Folder>& added);
+	explicit FolderAdded(int index, const std::shared_ptr<Folder>& added);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getIndex() const;
+	std::shared_ptr<object::Folder> getAdded() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> getAdded(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const std::shared_ptr<Folder> m_added;
 };
 
-class FolderUpdated : public object::FolderUpdated
+class FolderUpdated
 {
 public:
-	explicit FolderUpdated(response::IntType index, const std::shared_ptr<Folder>& updated);
+	explicit FolderUpdated(int index, const std::shared_ptr<Folder>& updated);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getIndex() const;
+	std::shared_ptr<object::Folder> getUpdated() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<std::shared_ptr<object::Folder>> getUpdated(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const std::shared_ptr<Folder> m_updated;
 };
 
-class FolderRemoved : public object::FolderRemoved
+class FolderRemoved
 {
 public:
-	explicit FolderRemoved(response::IntType index, const response::IdType& removed);
+	explicit FolderRemoved(int index, const response::IdType& removed);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	int getIndex() const;
+	const response::IdType& getRemoved() const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const override;
-	service::FieldResult<response::IdType> getRemoved(service::FieldParams&& params) const override;
-
-	const response::IntType m_index;
+	const int m_index;
 	const response::IdType m_removed;
 };
 
-class FoldersReloaded : public object::FoldersReloaded
+class FoldersReloaded
 {
 public:
 	explicit FoldersReloaded(const std::vector<std::shared_ptr<Folder>>& reloaded);
 
-private:
 	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> getReloaded(service::FieldParams&& params) const override;
+	std::vector<std::shared_ptr<object::Folder>> getReloaded() const;
 
+private:
 	const std::vector<std::shared_ptr<Folder>> m_reloaded;
 };
 
-class SubFoldersSubscription : public object::Subscription
+class SubFoldersSubscription
 {
 public:
-	explicit SubFoldersSubscription(std::vector<std::shared_ptr<service::Object>>&& subFolders);
+	explicit SubFoldersSubscription(
+		std::vector<std::shared_ptr<object::FolderChange>>&& subFolders);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	std::vector<std::shared_ptr<object::ItemChange>> getItems(ObjectId&& folderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getSubFolders(
+		ObjectId&& parentFolderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getRootFolders(
+		response::IdType&& storeIdArg) const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const override;
-
 	// These are all initialized at construction.
-	std::vector<std::shared_ptr<service::Object>> m_subFolders;
+	std::vector<std::shared_ptr<object::FolderChange>> m_subFolders;
 };
 
-class RootFoldersSubscription : public object::Subscription
+class RootFoldersSubscription
 {
 public:
-	explicit RootFoldersSubscription(std::vector<std::shared_ptr<service::Object>>&& rootFolders);
+	explicit RootFoldersSubscription(
+		std::vector<std::shared_ptr<object::FolderChange>>&& rootFolders);
+
+	// Resolvers/Accessors which implement the GraphQL type
+	std::vector<std::shared_ptr<object::ItemChange>> getItems(ObjectId&& folderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getSubFolders(
+		ObjectId&& parentFolderIdArg) const;
+	std::vector<std::shared_ptr<object::FolderChange>> getRootFolders(
+		response::IdType&& storeIdArg) const;
 
 private:
-	// Resolvers/Accessors which implement the GraphQL type
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const override;
-	service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const override;
-
 	// These are all initialized at construction.
-	std::vector<std::shared_ptr<service::Object>> m_rootFolders;
+	std::vector<std::shared_ptr<object::FolderChange>> m_rootFolders;
 };
 
 } // namespace graphql::mapi

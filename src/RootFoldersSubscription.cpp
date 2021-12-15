@@ -6,25 +6,26 @@
 
 namespace graphql::mapi {
 
-RootFoldersSubscription::RootFoldersSubscription(std::vector<std::shared_ptr<service::Object>>&& rootFolders)
+RootFoldersSubscription::RootFoldersSubscription(
+	std::vector<std::shared_ptr<object::FolderChange>>&& rootFolders)
 	: m_rootFolders { std::move(rootFolders) }
 {
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> RootFoldersSubscription::getItems(
-	service::FieldParams&& params, ObjectId&& folderIdArg) const
+std::vector<std::shared_ptr<object::ItemChange>> RootFoldersSubscription::getItems(
+	ObjectId&& folderIdArg) const
 {
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> RootFoldersSubscription::getSubFolders(
-	service::FieldParams&& params, ObjectId&& parentFolderIdArg) const
+std::vector<std::shared_ptr<object::FolderChange>> RootFoldersSubscription::getSubFolders(
+	ObjectId&& parentFolderIdArg) const
 {
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> RootFoldersSubscription::getRootFolders(
-	service::FieldParams&& params, response::IdType&& storeIdArg) const
+std::vector<std::shared_ptr<object::FolderChange>> RootFoldersSubscription::getRootFolders(
+	response::IdType&& storeIdArg) const
 {
 	return m_rootFolders;
 }

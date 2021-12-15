@@ -11,32 +11,293 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::StoreHas {
+
+template <class TImpl>
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getId = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
+};
+
+template <class TImpl>
+concept getNameWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getName = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName() } };
+};
+
+template <class TImpl>
+concept getColumnsWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getColumns = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns() } };
+};
+
+template <class TImpl>
+concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getRootFolders(std::move(params), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getRootFolders = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getRootFolders(std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getSpecialFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::vector<SpecialFolder> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getSpecialFolders(std::move(params), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getSpecialFolders = requires (TImpl impl, std::vector<SpecialFolder> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getSpecialFolders(std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getFolderPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getFolderProperties(std::move(params), std::move(folderIdArg), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getFolderProperties = requires (TImpl impl, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getFolderProperties(std::move(folderIdArg), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getItemPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getItemProperties(std::move(params), std::move(itemIdArg), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getItemProperties = requires (TImpl impl, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getItemProperties(std::move(itemIdArg), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::StoreHas
 
 class Store
 	: public service::Object
 {
-protected:
-	explicit Store();
+private:
+	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveSpecialFolders(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveFolderProperties(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveItemProperties(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::StoreHas::getIdWithParams<T>)
+			{
+				return { _pimpl->getId(std::move(params)) };
+			}
+			else if constexpr (methods::StoreHas::getId<T>)
+			{
+				return { _pimpl->getId() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getId is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::StoreHas::getNameWithParams<T>)
+			{
+				return { _pimpl->getName(std::move(params)) };
+			}
+			else if constexpr (methods::StoreHas::getName<T>)
+			{
+				return { _pimpl->getName() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getName is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::StoreHas::getColumnsWithParams<T>)
+			{
+				return { _pimpl->getColumns(std::move(params)) };
+			}
+			else if constexpr (methods::StoreHas::getColumns<T>)
+			{
+				return { _pimpl->getColumns() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getColumns is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		{
+			if constexpr (methods::StoreHas::getRootFoldersWithParams<T>)
+			{
+				return { _pimpl->getRootFolders(std::move(params), std::move(idsArg)) };
+			}
+			else if constexpr (methods::StoreHas::getRootFolders<T>)
+			{
+				return { _pimpl->getRootFolders(std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getRootFolders is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const final
+		{
+			if constexpr (methods::StoreHas::getSpecialFoldersWithParams<T>)
+			{
+				return { _pimpl->getSpecialFolders(std::move(params), std::move(idsArg)) };
+			}
+			else if constexpr (methods::StoreHas::getSpecialFolders<T>)
+			{
+				return { _pimpl->getSpecialFolders(std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getSpecialFolders is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const final
+		{
+			if constexpr (methods::StoreHas::getFolderPropertiesWithParams<T>)
+			{
+				return { _pimpl->getFolderProperties(std::move(params), std::move(folderIdArg), std::move(idsArg)) };
+			}
+			else if constexpr (methods::StoreHas::getFolderProperties<T>)
+			{
+				return { _pimpl->getFolderProperties(std::move(folderIdArg), std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getFolderProperties is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const final
+		{
+			if constexpr (methods::StoreHas::getItemPropertiesWithParams<T>)
+			{
+				return { _pimpl->getItemProperties(std::move(params), std::move(itemIdArg), std::move(idsArg)) };
+			}
+			else if constexpr (methods::StoreHas::getItemProperties<T>)
+			{
+				return { _pimpl->getItemProperties(std::move(itemIdArg), std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Store::getItemProperties is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::StoreHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::StoreHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Store(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::IdType> getId(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<response::StringType> getName(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveId(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveName(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveColumns(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveRootFolders(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveSpecialFolders(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveFolderProperties(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveItemProperties(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	Store(std::shared_ptr<T> pimpl) noexcept
+		: Store { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

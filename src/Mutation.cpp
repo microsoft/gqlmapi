@@ -1,15 +1,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "Types.h"
-#include "Unicode.h"
 #include "DateTime.h"
 #include "Guid.h"
+#include "Types.h"
+#include "Unicode.h"
+
+#include "FolderObject.h"
+#include "ItemObject.h"
 
 namespace graphql::mapi {
 
 Mutation::Mutation(const std::shared_ptr<Query>& query)
-	: m_query{ query }
+	: m_query { query }
 {
 }
 
@@ -18,25 +21,28 @@ Mutation::~Mutation()
 	// Release all of the MAPI objects we opened and free any MAPI memory allocations.
 }
 
-mapi_ptr<ENTRYLIST> ExtractEntryList(const std::vector<response::IdType> itemIds)
+mapi_ptr<ENTRYLIST> ExtractEntryList(const std::vector<response::IdType>& itemIds)
 {
 	mapi_ptr<ENTRYLIST> entryIds;
 
-	CORt(MAPIAllocateBuffer(static_cast<ULONG>(sizeof(*entryIds) + (itemIds.size() * sizeof(*entryIds->lpbin))),
+	CORt(MAPIAllocateBuffer(
+		static_cast<ULONG>(sizeof(*entryIds) + (itemIds.size() * sizeof(*entryIds->lpbin))),
 		reinterpret_cast<void**>(&out_ptr { entryIds })));
 	CFRt(entryIds != nullptr);
 	entryIds->cValues = static_cast<ULONG>(itemIds.size());
 	entryIds->lpbin = reinterpret_cast<SBinary*>(entryIds.get() + 1);
-	std::transform(itemIds.cbegin(), itemIds.cend(), entryIds->lpbin,
-		[](const auto& itemId) noexcept
-	{
-		return SBinary { static_cast<ULONG>(itemId.size()), reinterpret_cast<LPBYTE>(const_cast<response::IdType&>(itemId).data()) };
-	});
+	std::transform(itemIds.cbegin(),
+		itemIds.cend(),
+		entryIds->lpbin,
+		[](const auto& itemId) noexcept {
+			return SBinary { static_cast<ULONG>(itemId.size()),
+				reinterpret_cast<LPBYTE>(const_cast<response::IdType&>(itemId).data()) };
+		});
 
 	return entryIds;
 }
 
-bool Mutation::CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg, bool moveItems) const
+bool Mutation::CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg, bool moveItems)
 {
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
@@ -60,18 +66,21 @@ bool Mutation::CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationAr
 	HRESULT result = S_OK;
 
 	CORt(result = folder->folder()->CopyMessages(entryIds.get(),
-		&IID_IMAPIFolder, reinterpret_cast<void*>(static_cast<IMAPIFolder*>(targetFolder->folder())),
-		NULL, nullptr, (moveItems ? MESSAGE_MOVE : 0)));
+			 &IID_IMAPIFolder,
+			 reinterpret_cast<void*>(static_cast<IMAPIFolder*>(targetFolder->folder())),
+			 NULL,
+			 nullptr,
+			 (moveItems ? MESSAGE_MOVE : 0)));
 
 	return (result != MAPI_W_PARTIAL_COMPLETION);
 }
 
-void Mutation::endSelectionSet(const service::SelectionSetParams& params) const
+void Mutation::endSelectionSet(const service::SelectionSetParams&)
 {
 	m_query->ClearCaches();
 }
 
-service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const
+std::shared_ptr<object::Item> Mutation::applyCreateItem(CreateItemInput&& inputArg)
 {
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
@@ -94,7 +103,8 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 	const size_t propertiesSize = count * sizeof(*properties);
 	size_t nextProp = 0;
 
-	CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize), reinterpret_cast<void**>(&out_ptr{ properties })));
+	CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize),
+		reinterpret_cast<void**>(&out_ptr { properties })));
 	CFRt(properties != nullptr);
 	CFRt(nextProp < count);
 
@@ -102,7 +112,9 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 	const size_t subjectSize = (subject.size() + 1) * sizeof(wchar_t);
 	auto& subjectProp = properties.get()[nextProp++];
 
-	CORt(::MAPIAllocateMore(static_cast<ULONG>(subjectSize), properties.get(), reinterpret_cast<void**>(&subjectProp.Value.lpszW)));
+	CORt(::MAPIAllocateMore(static_cast<ULONG>(subjectSize),
+		properties.get(),
+		reinterpret_cast<void**>(&subjectProp.Value.lpszW)));
 	CFRt(subjectProp.Value.lpszW != nullptr);
 	subjectProp.ulPropTag = PR_SUBJECT_W;
 	memmove(subjectProp.Value.lpszW, subject.data(), subjectSize);
@@ -132,7 +144,8 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 		auto& receivedProp = properties.get()[nextProp++];
 
 		receivedProp.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-		receivedProp.Value.ft = convert::datetime::from_string(inputArg.received->get<response::StringType>());
+		receivedProp.Value.ft =
+			convert::datetime::from_string(inputArg.received->get<std::string>());
 	}
 
 	if (inputArg.modified)
@@ -142,7 +155,8 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 		auto& modifiedProp = properties.get()[nextProp++];
 
 		modifiedProp.ulPropTag = PR_LAST_MODIFICATION_TIME;
-		modifiedProp.Value.ft = convert::datetime::from_string(inputArg.modified->get<response::StringType>());
+		modifiedProp.Value.ft =
+			convert::datetime::from_string(inputArg.modified->get<std::string>());
 	}
 
 	if (inputArg.properties)
@@ -151,7 +165,10 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 		const LPSPropValue propEnd = properties.get() + count;
 
 		nextProp += std::distance(propBegin, propEnd);
-		store->ConvertPropertyInputs(properties.get(), propBegin, propEnd, std::move(*inputArg.properties));
+		store->ConvertPropertyInputs(properties.get(),
+			propBegin,
+			propEnd,
+			std::move(*inputArg.properties));
 	}
 
 	CFRt(nextProp == count);
@@ -161,10 +178,10 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyCreateItem(se
 	auto created = std::make_shared<Item>(store, message, count, std::move(properties));
 
 	store->CacheItem(created);
-	return std::static_pointer_cast<object::Item>(created);
+	return std::make_shared<object::Item>(created);
 }
 
-service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const
+std::shared_ptr<object::Folder> Mutation::applyCreateSubFolder(CreateSubFolderInput&& inputArg)
 {
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
@@ -176,8 +193,12 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFo
 	CComPtr<IMAPIFolder> folder;
 
 	CFRt(parentFolder != nullptr);
-	CORt(parentFolder->folder()->CreateFolder(FOLDER_GENERIC, "", "",
-		nullptr, MAPI_DEFERRED_ERRORS | MAPI_UNICODE, &folder));
+	CORt(parentFolder->folder()->CreateFolder(FOLDER_GENERIC,
+		const_cast<char*>(""),
+		const_cast<char*>(""),
+		nullptr,
+		MAPI_DEFERRED_ERRORS | MAPI_UNICODE,
+		&folder));
 
 	mapi_ptr<SPropValue> properties;
 	const size_t count = 1 // name
@@ -185,7 +206,8 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFo
 	const size_t propertiesSize = count * sizeof(*properties);
 	size_t nextProp = 0;
 
-	CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize), reinterpret_cast<void**>(&out_ptr{ properties })));
+	CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize),
+		reinterpret_cast<void**>(&out_ptr { properties })));
 	CFRt(properties != nullptr);
 	CFRt(nextProp < count);
 
@@ -193,7 +215,9 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFo
 	const size_t nameSize = (name.size() + 1) * sizeof(wchar_t);
 	auto& nameProp = properties.get()[nextProp++];
 
-	CORt(::MAPIAllocateMore(static_cast<ULONG>(nameSize), properties.get(), reinterpret_cast<void**>(&nameProp.Value.lpszW)));
+	CORt(::MAPIAllocateMore(static_cast<ULONG>(nameSize),
+		properties.get(),
+		reinterpret_cast<void**>(&nameProp.Value.lpszW)));
 	CFRt(nameProp.Value.lpszW != nullptr);
 	nameProp.ulPropTag = PR_DISPLAY_NAME_W;
 	memmove(nameProp.Value.lpszW, name.data(), nameSize);
@@ -206,7 +230,10 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFo
 		const LPSPropValue propEnd = properties.get() + count;
 
 		nextProp += std::distance(propBegin, propEnd);
-		store->ConvertPropertyInputs(properties.get(), propBegin, propEnd, std::move(*inputArg.properties));
+		store->ConvertPropertyInputs(properties.get(),
+			propBegin,
+			propEnd,
+			std::move(*inputArg.properties));
 	}
 
 	CORt(folder->SetProps(static_cast<ULONG>(count), properties.get(), nullptr));
@@ -215,10 +242,10 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyCreateSubFo
 	auto created = std::make_shared<Folder>(store, folder, count, std::move(properties));
 
 	store->CacheFolder(created);
-	return std::static_pointer_cast<object::Folder>(created);
+	return std::make_shared<object::Folder>(created);
 }
 
-service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const
+std::shared_ptr<object::Item> Mutation::applyModifyItem(ModifyItemInput&& inputArg)
 {
 	auto storeId = std::move(inputArg.id.storeId);
 	auto messageId = std::move(inputArg.id.objectId);
@@ -237,20 +264,22 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(se
 		auto propIds = store->lookupPropIdInputs(std::move(*inputArg.deleted));
 		mapi_ptr<SPropTagArray> deletePropIds;
 
-		CORt(::MAPIAllocateBuffer(CbNewSPropTagArray(propIds.size()), reinterpret_cast<void**>(&out_ptr{ deletePropIds })));
+		CORt(::MAPIAllocateBuffer(CbNewSPropTagArray(propIds.size()),
+			reinterpret_cast<void**>(&out_ptr { deletePropIds })));
 		CFRt(deletePropIds != nullptr);
 		deletePropIds->cValues = static_cast<ULONG>(propIds.size());
-		std::transform(propIds.cbegin(), propIds.cend(), deletePropIds->aulPropTag,
-			[](const auto& entry) noexcept
-		{
-			return entry.first;
-		});
+		std::transform(propIds.cbegin(),
+			propIds.cend(),
+			deletePropIds->aulPropTag,
+			[](const auto& entry) noexcept {
+				return entry.first;
+			});
 
 		CORt(message->message()->DeleteProps(deletePropIds.get(), nullptr));
 	}
 
-	const size_t setCount = (inputArg.subject ? 1 : 0)
-		+ (inputArg.properties ? inputArg.properties->size() : 0);
+	const size_t setCount =
+		(inputArg.subject ? 1 : 0) + (inputArg.properties ? inputArg.properties->size() : 0);
 
 	if (setCount > 0)
 	{
@@ -258,7 +287,8 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(se
 		const size_t propertiesSize = setCount * sizeof(*properties);
 		size_t nextProp = 0;
 
-		CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize), reinterpret_cast<void**>(&out_ptr{ properties })));
+		CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize),
+			reinterpret_cast<void**>(&out_ptr { properties })));
 		CFRt(properties != nullptr);
 		CFRt(nextProp < setCount);
 
@@ -268,7 +298,9 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(se
 			const size_t subjectSize = (subject.size() + 1) * sizeof(wchar_t);
 			auto& subjectProp = properties.get()[nextProp++];
 
-			CORt(::MAPIAllocateMore(static_cast<ULONG>(subjectSize), properties.get(), reinterpret_cast<void**>(&subjectProp.Value.lpszW)));
+			CORt(::MAPIAllocateMore(static_cast<ULONG>(subjectSize),
+				properties.get(),
+				reinterpret_cast<void**>(&subjectProp.Value.lpszW)));
 			CFRt(subjectProp.Value.lpszW != nullptr);
 			subjectProp.ulPropTag = PR_SUBJECT_W;
 			memmove(subjectProp.Value.lpszW, subject.data(), subjectSize);
@@ -282,7 +314,10 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(se
 			const LPSPropValue propEnd = properties.get() + setCount;
 
 			nextProp += std::distance(propBegin, propEnd);
-			store->ConvertPropertyInputs(properties.get(), propBegin, propEnd, std::move(*inputArg.properties));
+			store->ConvertPropertyInputs(properties.get(),
+				propBegin,
+				propEnd,
+				std::move(*inputArg.properties));
 		}
 
 		CFRt(nextProp == setCount);
@@ -296,10 +331,10 @@ service::FieldResult<std::shared_ptr<object::Item>> Mutation::applyModifyItem(se
 
 	CORt(message->message()->SetReadFlag(inputArg.read ? 0 : CLEAR_READ_FLAG));
 
-	return std::static_pointer_cast<object::Item>(message);
+	return std::make_shared<object::Item>(message);
 }
 
-service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const
+std::shared_ptr<object::Folder> Mutation::applyModifyFolder(ModifyFolderInput&& inputArg)
 {
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
@@ -318,20 +353,22 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolde
 		auto propIds = store->lookupPropIdInputs(std::move(*inputArg.deleted));
 		mapi_ptr<SPropTagArray> deletePropIds;
 
-		CORt(::MAPIAllocateBuffer(CbNewSPropTagArray(propIds.size()), reinterpret_cast<void**>(&out_ptr{ deletePropIds })));
+		CORt(::MAPIAllocateBuffer(CbNewSPropTagArray(propIds.size()),
+			reinterpret_cast<void**>(&out_ptr { deletePropIds })));
 		CFRt(deletePropIds != nullptr);
 		deletePropIds->cValues = static_cast<ULONG>(propIds.size());
-		std::transform(propIds.cbegin(), propIds.cend(), deletePropIds->aulPropTag,
-			[](const auto& entry) noexcept
-		{
-			return entry.first;
-		});
+		std::transform(propIds.cbegin(),
+			propIds.cend(),
+			deletePropIds->aulPropTag,
+			[](const auto& entry) noexcept {
+				return entry.first;
+			});
 
 		CORt(folder->folder()->DeleteProps(deletePropIds.get(), nullptr));
 	}
 
-	const size_t setCount = (inputArg.name ? 1 : 0)
-		+ (inputArg.properties ? inputArg.properties->size() : 0);
+	const size_t setCount =
+		(inputArg.name ? 1 : 0) + (inputArg.properties ? inputArg.properties->size() : 0);
 
 	if (setCount > 0)
 	{
@@ -339,7 +376,8 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolde
 		const size_t propertiesSize = setCount * sizeof(*properties);
 		size_t nextProp = 0;
 
-		CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize), reinterpret_cast<void**>(&out_ptr{ properties })));
+		CORt(::MAPIAllocateBuffer(static_cast<ULONG>(propertiesSize),
+			reinterpret_cast<void**>(&out_ptr { properties })));
 		CFRt(properties != nullptr);
 		CFRt(nextProp < setCount);
 
@@ -349,7 +387,9 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolde
 			const size_t nameSize = (name.size() + 1) * sizeof(wchar_t);
 			auto& nameProp = properties.get()[nextProp++];
 
-			CORt(::MAPIAllocateMore(static_cast<ULONG>(nameSize), properties.get(), reinterpret_cast<void**>(&nameProp.Value.lpszW)));
+			CORt(::MAPIAllocateMore(static_cast<ULONG>(nameSize),
+				properties.get(),
+				reinterpret_cast<void**>(&nameProp.Value.lpszW)));
 			CFRt(nameProp.Value.lpszW != nullptr);
 			nameProp.ulPropTag = PR_DISPLAY_NAME_W;
 			memmove(nameProp.Value.lpszW, name.data(), nameSize);
@@ -363,7 +403,10 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolde
 			const LPSPropValue propEnd = properties.get() + setCount;
 
 			nextProp += std::distance(propBegin, propEnd);
-			store->ConvertPropertyInputs(properties.get(), propBegin, propEnd, std::move(*inputArg.properties));
+			store->ConvertPropertyInputs(properties.get(),
+				propBegin,
+				propEnd,
+				std::move(*inputArg.properties));
 		}
 
 		CFRt(nextProp == setCount);
@@ -375,10 +418,10 @@ service::FieldResult<std::shared_ptr<object::Folder>> Mutation::applyModifyFolde
 		CORt(folder->folder()->SaveChanges(0));
 	}
 
-	return std::static_pointer_cast<object::Folder>(folder);
+	return std::make_shared<object::Folder>(folder);
 }
 
-service::FieldResult<response::BooleanType> Mutation::applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, response::BooleanType&& hardDeleteArg) const
+bool Mutation::applyRemoveFolder(ObjectId&& inputArg, bool hardDeleteArg)
 {
 	auto storeId = std::move(inputArg.storeId);
 	auto folderId = std::move(inputArg.objectId);
@@ -398,24 +441,30 @@ service::FieldResult<response::BooleanType> Mutation::applyRemoveFolder(service:
 
 	if (hardDeleteArg)
 	{
-		CORt(result = parentFolder->folder()->DeleteFolder(
-			static_cast<ULONG>(folderId.size()), reinterpret_cast<LPENTRYID>(folderId.data()),
-			NULL, nullptr, DEL_FOLDERS | DEL_MESSAGES));
+		CORt(result = parentFolder->folder()->DeleteFolder(static_cast<ULONG>(folderId.size()),
+				 reinterpret_cast<LPENTRYID>(folderId.data()),
+				 NULL,
+				 nullptr,
+				 DEL_FOLDERS | DEL_MESSAGES));
 	}
 	else
 	{
 		auto targetFolder = store->lookupSpecialFolder(SpecialFolder::DELETED);
 
-		CORt(result = parentFolder->folder()->CopyFolder(
-			static_cast<ULONG>(folderId.size()), reinterpret_cast<LPENTRYID>(folderId.data()),
-			&IID_IMAPIFolder, reinterpret_cast<void*>(static_cast<IMAPIFolder*>(targetFolder->folder())),
-			nullptr, NULL, nullptr, FOLDER_MOVE | MAPI_UNICODE));
+		CORt(result = parentFolder->folder()->CopyFolder(static_cast<ULONG>(folderId.size()),
+				 reinterpret_cast<LPENTRYID>(folderId.data()),
+				 &IID_IMAPIFolder,
+				 reinterpret_cast<void*>(static_cast<IMAPIFolder*>(targetFolder->folder())),
+				 nullptr,
+				 NULL,
+				 nullptr,
+				 FOLDER_MOVE | MAPI_UNICODE));
 	}
 
 	return (result != MAPI_W_PARTIAL_COMPLETION);
 }
 
-service::FieldResult<response::BooleanType> Mutation::applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& readArg) const
+bool Mutation::applyMarkAsRead(MultipleItemsInput&& inputArg, bool readArg)
 {
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
@@ -429,23 +478,26 @@ service::FieldResult<response::BooleanType> Mutation::applyMarkAsRead(service::F
 
 	auto entryIds = ExtractEntryList(inputArg.itemIds);
 	HRESULT result = S_OK;
-	
-	CORt(result = folder->folder()->SetReadFlags(entryIds.get(), NULL, nullptr, (readArg ? 0 : CLEAR_READ_FLAG)));
+
+	CORt(result = folder->folder()->SetReadFlags(entryIds.get(),
+			 NULL,
+			 nullptr,
+			 (readArg ? 0 : CLEAR_READ_FLAG)));
 
 	return (result != MAPI_W_PARTIAL_COMPLETION);
 }
 
-service::FieldResult<response::BooleanType> Mutation::applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const
+bool Mutation::applyCopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg)
 {
 	return CopyItems(std::move(inputArg), std::move(destinationArg), false);
 }
 
-service::FieldResult<response::BooleanType> Mutation::applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const
+bool Mutation::applyMoveItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg)
 {
 	return CopyItems(std::move(inputArg), std::move(destinationArg), true);
 }
 
-service::FieldResult<response::BooleanType> Mutation::applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& hardDeleteArg) const
+bool Mutation::applyDeleteItems(MultipleItemsInput&& inputArg, bool hardDeleteArg)
 {
 	if (!hardDeleteArg)
 	{
@@ -457,7 +509,9 @@ service::FieldResult<response::BooleanType> Mutation::applyDeleteItems(service::
 
 		CFRt(targetFolder != nullptr);
 
-		return CopyItems(std::move(inputArg), ObjectId { inputArg.folderId.storeId, targetFolder->id() }, true);
+		return CopyItems(std::move(inputArg),
+			ObjectId { inputArg.folderId.storeId, targetFolder->id() },
+			true);
 	}
 
 	auto storeId = std::move(inputArg.folderId.storeId);

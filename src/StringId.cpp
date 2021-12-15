@@ -7,13 +7,13 @@
 namespace graphql::mapi {
 
 StringId::StringId(PCWSTR name)
-	: m_name{ name }
+	: m_name { convert::utf8::to_utf8(name) }
 {
 }
 
-service::FieldResult<response::StringType> StringId::getName(service::FieldParams&& params) const
+const std::string& StringId::getName() const
 {
-	return { convert::utf8::to_utf8(m_name) };
+	return m_name;
 }
 
 } // namespace graphql::mapi

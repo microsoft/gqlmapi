@@ -4,6 +4,8 @@
 #include "Types.h"
 #include "Unicode.h"
 
+#include "FolderObject.h"
+
 namespace graphql::mapi {
 
 FoldersReloaded::FoldersReloaded(const std::vector<std::shared_ptr<Folder>>& reloaded)
@@ -11,16 +13,15 @@ FoldersReloaded::FoldersReloaded(const std::vector<std::shared_ptr<Folder>>& rel
 {
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> FoldersReloaded::getReloaded(
-	service::FieldParams&& params) const
+std::vector<std::shared_ptr<object::Folder>> FoldersReloaded::getReloaded() const
 {
 	std::vector<std::shared_ptr<object::Folder>> result(m_reloaded.size());
 
 	std::transform(m_reloaded.cbegin(),
 		m_reloaded.cend(),
 		result.begin(),
-		[](const std::shared_ptr<Folder>& item) noexcept {
-			return std::static_pointer_cast<object::Folder>(item);
+		[](const std::shared_ptr<Folder>& folder) noexcept {
+			return std::make_shared<object::Folder>(folder);
 		});
 
 	return result;

@@ -11,26 +11,219 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace implements {
+
+template <class I>
+concept FileAttachmentIs = std::is_same_v<I, Attachment>;
+
+} // namespace implements
+
+namespace methods::FileAttachmentHas {
+
+template <class TImpl>
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getId = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
+};
+
+template <class TImpl>
+concept getNameWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getName = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName() } };
+};
+
+template <class TImpl>
+concept getContentsWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getContents(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getContents = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getContents() } };
+};
+
+template <class TImpl>
+concept getPropertiesWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<PropIdInput>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getProperties(std::move(params), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getProperties = requires (TImpl impl, std::optional<std::vector<PropIdInput>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getProperties(std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::FileAttachmentHas
 
 class FileAttachment
 	: public service::Object
 {
-protected:
-	explicit FileAttachment();
+private:
+	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveContents(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveProperties(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FileAttachmentHas::getIdWithParams<T>)
+			{
+				return { _pimpl->getId(std::move(params)) };
+			}
+			else if constexpr (methods::FileAttachmentHas::getId<T>)
+			{
+				return { _pimpl->getId() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FileAttachment::getId is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FileAttachmentHas::getNameWithParams<T>)
+			{
+				return { _pimpl->getName(std::move(params)) };
+			}
+			else if constexpr (methods::FileAttachmentHas::getName<T>)
+			{
+				return { _pimpl->getName() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FileAttachment::getName is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FileAttachmentHas::getContentsWithParams<T>)
+			{
+				return { _pimpl->getContents(std::move(params)) };
+			}
+			else if constexpr (methods::FileAttachmentHas::getContents<T>)
+			{
+				return { _pimpl->getContents() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FileAttachment::getContents is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const final
+		{
+			if constexpr (methods::FileAttachmentHas::getPropertiesWithParams<T>)
+			{
+				return { _pimpl->getProperties(std::move(params), std::move(idsArg)) };
+			}
+			else if constexpr (methods::FileAttachmentHas::getProperties<T>)
+			{
+				return { _pimpl->getProperties(std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FileAttachment::getProperties is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FileAttachmentHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FileAttachmentHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	FileAttachment(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	// Unions which include this type
+	friend Attachment;
+
+	template <class I>
+	static constexpr bool implements() noexcept
+	{
+		return implements::FileAttachmentIs<I>;
+	}
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::IdType> getId(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<response::StringType> getName(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveId(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveName(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveContents(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveProperties(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	FileAttachment(std::shared_ptr<T> pimpl) noexcept
+		: FileAttachment { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

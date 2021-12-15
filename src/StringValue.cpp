@@ -7,18 +7,18 @@
 namespace graphql::mapi {
 
 StringValue::StringValue(PCWSTR value)
-	: m_value{ convert::utf8::to_utf8(value) }
+	: m_value { convert::utf8::to_utf8(value) }
 {
 }
 
 StringValue::StringValue(std::string&& value)
-	: m_value{ std::move(value) }
+	: m_value { std::move(value) }
 {
 }
 
-service::FieldResult<response::StringType> StringValue::getValue(service::FieldParams&& params) const
+const std::string& StringValue::getValue() const
 {
-	return { m_value };
+	return m_value;
 }
 
 } // namespace graphql::mapi

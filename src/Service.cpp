@@ -11,6 +11,10 @@
 
 #include "Types.h"
 
+#include "MutationObject.h"
+#include "QueryObject.h"
+#include "SubscriptionObject.h"
+
 namespace graphql::mapi {
 
 GQLMAPI_EXPORT std::shared_ptr<service::Request> GetService(bool useDefaultProfile) noexcept

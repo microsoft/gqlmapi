@@ -11,20 +11,129 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace implements {
+
+template <class I>
+concept StringIdIs = std::is_same_v<I, NamedPropId>;
+
+} // namespace implements
+
+namespace methods::StringIdHas {
+
+template <class TImpl>
+concept getNameWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getName = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getName() } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::StringIdHas
 
 class StringId
 	: public service::Object
 {
-protected:
-	explicit StringId();
+private:
+	service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::StringIdHas::getNameWithParams<T>)
+			{
+				return { _pimpl->getName(std::move(params)) };
+			}
+			else if constexpr (methods::StringIdHas::getName<T>)
+			{
+				return { _pimpl->getName() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(StringId::getName is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::StringIdHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::StringIdHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	StringId(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	// Unions which include this type
+	friend NamedPropId;
+
+	template <class I>
+	static constexpr bool implements() noexcept
+	{
+		return implements::StringIdIs<I>;
+	}
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::StringType> getName(service::FieldParams&& params) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveName(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	StringId(std::shared_ptr<T> pimpl) noexcept
+		: StringId { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

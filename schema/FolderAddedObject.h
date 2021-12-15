@@ -11,22 +11,159 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace implements {
+
+template <class I>
+concept FolderAddedIs = std::is_same_v<I, FolderChange>;
+
+} // namespace implements
+
+namespace methods::FolderAddedHas {
+
+template <class TImpl>
+concept getIndexWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<int> { impl.getIndex(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getIndex = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<int> { impl.getIndex() } };
+};
+
+template <class TImpl>
+concept getAddedWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getAdded(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getAdded = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getAdded() } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::FolderAddedHas
 
 class FolderAdded
 	: public service::Object
 {
-protected:
-	explicit FolderAdded();
+private:
+	service::AwaitableResolver resolveIndex(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveAdded(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<int> getIndex(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<Folder>> getAdded(service::FieldParams&& params) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<int> getIndex(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FolderAddedHas::getIndexWithParams<T>)
+			{
+				return { _pimpl->getIndex(std::move(params)) };
+			}
+			else if constexpr (methods::FolderAddedHas::getIndex<T>)
+			{
+				return { _pimpl->getIndex() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FolderAdded::getIndex is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<Folder>> getAdded(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FolderAddedHas::getAddedWithParams<T>)
+			{
+				return { _pimpl->getAdded(std::move(params)) };
+			}
+			else if constexpr (methods::FolderAddedHas::getAdded<T>)
+			{
+				return { _pimpl->getAdded() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FolderAdded::getAdded is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FolderAddedHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FolderAddedHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	FolderAdded(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	// Unions which include this type
+	friend FolderChange;
+
+	template <class I>
+	static constexpr bool implements() noexcept
+	{
+		return implements::FolderAddedIs<I>;
+	}
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::shared_ptr<Folder>> getAdded(service::FieldParams&& params) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveIndex(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveAdded(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	FolderAdded(std::shared_ptr<T> pimpl) noexcept
+		: FolderAdded { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

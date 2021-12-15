@@ -11,30 +11,263 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::ConversationHas {
+
+template <class TImpl>
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getId = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
+};
+
+template <class TImpl>
+concept getSubjectWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getSubject(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getSubject = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::string> { impl.getSubject() } };
+};
+
+template <class TImpl>
+concept getCountWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<int> { impl.getCount(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getCount = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<int> { impl.getCount() } };
+};
+
+template <class TImpl>
+concept getUnreadWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<int> { impl.getUnread(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getUnread = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<int> { impl.getUnread() } };
+};
+
+template <class TImpl>
+concept getReceivedWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getReceived = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived() } };
+};
+
+template <class TImpl>
+concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Item>>> { impl.getItems(std::move(params), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getItems = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Item>>> { impl.getItems(std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::ConversationHas
 
 class Conversation
 	: public service::Object
 {
-protected:
-	explicit Conversation();
+private:
+	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveSubject(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveCount(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveUnread(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveReceived(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<int> getCount(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ConversationHas::getIdWithParams<T>)
+			{
+				return { _pimpl->getId(std::move(params)) };
+			}
+			else if constexpr (methods::ConversationHas::getId<T>)
+			{
+				return { _pimpl->getId() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getId is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ConversationHas::getSubjectWithParams<T>)
+			{
+				return { _pimpl->getSubject(std::move(params)) };
+			}
+			else if constexpr (methods::ConversationHas::getSubject<T>)
+			{
+				return { _pimpl->getSubject() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getSubject is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<int> getCount(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ConversationHas::getCountWithParams<T>)
+			{
+				return { _pimpl->getCount(std::move(params)) };
+			}
+			else if constexpr (methods::ConversationHas::getCount<T>)
+			{
+				return { _pimpl->getCount() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getCount is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ConversationHas::getUnreadWithParams<T>)
+			{
+				return { _pimpl->getUnread(std::move(params)) };
+			}
+			else if constexpr (methods::ConversationHas::getUnread<T>)
+			{
+				return { _pimpl->getUnread() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getUnread is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ConversationHas::getReceivedWithParams<T>)
+			{
+				return { _pimpl->getReceived(std::move(params)) };
+			}
+			else if constexpr (methods::ConversationHas::getReceived<T>)
+			{
+				return { _pimpl->getReceived() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getReceived is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		{
+			if constexpr (methods::ConversationHas::getItemsWithParams<T>)
+			{
+				return { _pimpl->getItems(std::move(params), std::move(idsArg)) };
+			}
+			else if constexpr (methods::ConversationHas::getItems<T>)
+			{
+				return { _pimpl->getItems(std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Conversation::getItems is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::ConversationHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::ConversationHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Conversation(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::IdType> getId(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<response::StringType> getSubject(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<response::IntType> getCount(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<response::IntType> getUnread(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveId(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveSubject(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveCount(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveUnread(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveReceived(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveItems(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	Conversation(std::shared_ptr<T> pimpl) noexcept
+		: Conversation { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

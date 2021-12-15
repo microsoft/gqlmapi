@@ -4,6 +4,18 @@
 #include "Guid.h"
 #include "Types.h"
 
+#include "FolderAddedObject.h"
+#include "FolderChangeObject.h"
+#include "FolderRemovedObject.h"
+#include "FolderUpdatedObject.h"
+#include "FoldersReloadedObject.h"
+#include "ItemAddedObject.h"
+#include "ItemChangeObject.h"
+#include "ItemRemovedObject.h"
+#include "ItemUpdatedObject.h"
+#include "ItemsReloadedObject.h"
+#include "SubscriptionObject.h"
+
 using namespace std::literals;
 
 namespace graphql::mapi {
@@ -26,8 +38,8 @@ void Subscription::setService(const std::shared_ptr<Operations>& service) noexce
 	m_service = service;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription::getItems(
-	service::FieldParams&& params, ObjectId&& folderIdArg) const
+std::vector<std::shared_ptr<object::ItemChange>> Subscription::getItems(
+	service::FieldParams&& params, ObjectId&& folderIdArg)
 {
 	Registration<Item> registration { { std::move(folderIdArg),
 		std::move(params.fieldDirectives) } };
@@ -68,11 +80,11 @@ service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription
 		}
 	}
 
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription::getSubFolders(
-	service::FieldParams&& params, ObjectId&& parentFolderIdArg) const
+std::vector<std::shared_ptr<object::FolderChange>> Subscription::getSubFolders(
+	service::FieldParams&& params, ObjectId&& parentFolderIdArg)
 {
 	Registration<Folder> registration { { std::move(parentFolderIdArg),
 		std::move(params.fieldDirectives) } };
@@ -113,11 +125,11 @@ service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription
 		}
 	}
 
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription::getRootFolders(
-	service::FieldParams&& params, response::IdType&& storeIdArg) const
+std::vector<std::shared_ptr<object::FolderChange>> Subscription::getRootFolders(
+	service::FieldParams&& params, response::IdType&& storeIdArg)
 {
 	Registration<Folder> registration { { { std::move(storeIdArg), {} },
 		std::move(params.fieldDirectives) } };
@@ -159,7 +171,7 @@ service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Subscription
 		}
 	}
 
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
 bool operator==(const ObjectId& lhs, const ObjectId& rhs) noexcept
@@ -173,23 +185,37 @@ struct SubscriptionTraits;
 template <>
 struct SubscriptionTraits<Item>
 {
+	using Change = object::ItemChange;
+
 	using Added = ItemAdded;
 	using Updated = ItemUpdated;
 	using Removed = ItemRemoved;
 	using Reloaded = ItemsReloaded;
+
+	using AddedObject = object::ItemAdded;
+	using UpdatedObject = object::ItemUpdated;
+	using RemovedObject = object::ItemRemoved;
+	using ReloadedObject = object::ItemsReloaded;
 };
 
 template <>
 struct SubscriptionTraits<Folder>
 {
+	using Change = object::FolderChange;
+
 	using Added = FolderAdded;
 	using Updated = FolderUpdated;
 	using Removed = FolderRemoved;
 	using Reloaded = FoldersReloaded;
+
+	using AddedObject = object::FolderAdded;
+	using UpdatedObject = object::FolderUpdated;
+	using RemovedObject = object::FolderRemoved;
+	using ReloadedObject = object::FoldersReloaded;
 };
 
 template <class T, class ArgumentType, class PayloadType>
-void Subscription::RegisterAdviseSinkProxy(std::launch launch, std::string&& fieldName,
+void Subscription::RegisterAdviseSinkProxy(service::await_async launch, std::string&& fieldName,
 	std::string_view argumentName, const ArgumentType& argumentValue,
 	Registration<T>& registration) const
 {
@@ -197,219 +223,228 @@ void Subscription::RegisterAdviseSinkProxy(std::launch launch, std::string&& fie
 	registration.sink->rows =
 		LoadRows<T>(registration.key, registration.sink->store, registration.sink->table);
 
-	auto spThis = std::static_pointer_cast<const Subscription>(shared_from_this());
+	auto spThis = shared_from_this();
 	CComPtr<AdviseSinkProxy<IMAPITable>> sinkProxy;
 	ULONG_PTR connectionId = 0;
 
-	sinkProxy.Attach(new AdviseSinkProxy<IMAPITable>(
-		[launch,
-			fieldName = std::move(fieldName),
-			argumentName,
-			argumentValue = argumentValue,
-			key = registration.key,
-			wpThis = std::weak_ptr { spThis },
-			wpSink =
-				std::weak_ptr { registration.sink }](size_t count, LPNOTIFICATION pNotifications) {
-			if (0 == count || nullptr == pNotifications)
+	sinkProxy.Attach(new AdviseSinkProxy<IMAPITable>([launch,
+														 fieldName = std::move(fieldName),
+														 argumentName,
+														 argumentValue = argumentValue,
+														 key = registration.key,
+														 wpThis = std::weak_ptr { spThis },
+														 wpSink =
+															 std::weak_ptr { registration.sink }](
+														 size_t count,
+														 LPNOTIFICATION pNotifications) {
+		if (0 == count || nullptr == pNotifications)
+		{
+			return;
+		}
+
+		auto spThis = wpThis.lock();
+		auto spSink = wpSink.lock();
+
+		if (!spThis || !spSink)
+		{
+			return;
+		}
+
+		auto spService = spThis->m_service.lock();
+
+		if (!spService)
+		{
+			return;
+		}
+
+		std::vector<std::shared_ptr<typename SubscriptionTraits<T>::Change>> items;
+
+		items.reserve(count);
+		for (size_t i = 0; i < count; ++i)
+		{
+			const auto& notif = pNotifications[i];
+			bool reload = false;
+
+			switch (notif.info.tab.ulTableEvent)
 			{
-				return;
-			}
-
-			auto spThis = wpThis.lock();
-			auto spSink = wpSink.lock();
-
-			if (!spThis || !spSink)
-			{
-				return;
-			}
-
-			auto spService = spThis->m_service.lock();
-
-			if (!spService)
-			{
-				return;
-			}
-
-			std::vector<std::shared_ptr<service::Object>> items;
-
-			items.reserve(count);
-			for (size_t i = 0; i < count; ++i)
-			{
-				const auto& notif = pNotifications[i];
-				bool reload = false;
-
-				switch (notif.info.tab.ulTableEvent)
-				{
-					case TABLE_CHANGED:
-					case TABLE_ERROR:
-					case TABLE_RELOAD:
-						reload = true;
-						break;
-
-					case TABLE_ROW_ADDED:
-						if (notif.info.tab.propPrior.ulPropTag == PR_INSTANCE_KEY)
-						{
-							// Find the insertion point if it's in our cache window.
-							const auto beginKey = reinterpret_cast<const std::uint8_t*>(
-								notif.info.tab.propPrior.Value.bin.lpb);
-							const auto endKey = beginKey
-								+ static_cast<size_t>(notif.info.tab.propPrior.Value.bin.cb);
-							const response::IdType priorKey { beginKey, endKey };
-							const auto itrPrior = std::find_if(spSink->rows.cbegin(),
-								spSink->rows.cend(),
-								[&priorKey](const std::shared_ptr<T>& item) noexcept {
-									return item->instanceKey() == priorKey;
-								});
-
-							if (itrPrior == spSink->rows.cend())
-							{
-								break;
-							}
-
-							const auto& row = notif.info.tab.row;
-							const size_t columnCount = static_cast<size_t>(row.cValues);
-							mapi_ptr<SPropValue> columns;
-
-							CORt(ScDupPropset(row.cValues,
-								row.lpProps,
-								::MAPIAllocateBuffer,
-								&out_ptr { columns }));
-							CFRt(columns != nullptr);
-
-							const auto itr = itrPrior + 1;
-							const auto index = static_cast<response::IntType>(
-								std::distance(spSink->rows.cbegin(), itr));
-							auto item = std::make_shared<T>(spSink->store,
-								nullptr,
-								columnCount,
-								std::move(columns));
-
-							spSink->rows.insert(itr, item);
-							items.push_back(
-								std::make_shared<typename SubscriptionTraits<T>::Added>(index,
-									std::move(item)));
-						}
-
-						break;
-
-					case TABLE_ROW_MODIFIED:
-						if (notif.info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY)
-						{
-							// Find the insertion point if it's in our cache window.
-							const auto beginKey = reinterpret_cast<const std::uint8_t*>(
-								notif.info.tab.propIndex.Value.bin.lpb);
-							const auto endKey = beginKey
-								+ static_cast<size_t>(notif.info.tab.propIndex.Value.bin.cb);
-							const response::IdType indexKey { beginKey, endKey };
-							const auto itr = std::find_if(spSink->rows.begin(),
-								spSink->rows.end(),
-								[&indexKey](const std::shared_ptr<T>& item) noexcept {
-									return item->instanceKey() == indexKey;
-								});
-
-							if (itr == spSink->rows.cend())
-							{
-								break;
-							}
-
-							const auto& row = notif.info.tab.row;
-							const size_t columnCount = static_cast<size_t>(row.cValues);
-							mapi_ptr<SPropValue> columns;
-
-							CORt(ScDupPropset(row.cValues,
-								row.lpProps,
-								::MAPIAllocateBuffer,
-								&out_ptr { columns }));
-							CFRt(columns != nullptr);
-
-							const auto index = static_cast<response::IntType>(
-								std::distance(spSink->rows.begin(), itr));
-							auto item = std::make_shared<T>(spSink->store,
-								nullptr,
-								columnCount,
-								std::move(columns));
-
-							*itr = item;
-							items.push_back(
-								std::make_shared<typename SubscriptionTraits<T>::Updated>(index,
-									std::move(item)));
-						}
-
-						break;
-
-					case TABLE_ROW_DELETED:
-						if (notif.info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY)
-						{
-							// Find the insertion point if it's in our cache window.
-							const auto beginKey = reinterpret_cast<const std::uint8_t*>(
-								notif.info.tab.propIndex.Value.bin.lpb);
-							const auto endKey = beginKey
-								+ static_cast<size_t>(notif.info.tab.propIndex.Value.bin.cb);
-							const response::IdType indexKey { beginKey, endKey };
-							const auto itr = std::find_if(spSink->rows.cbegin(),
-								spSink->rows.cend(),
-								[&indexKey](const std::shared_ptr<T>& item) noexcept {
-									return item->instanceKey() == indexKey;
-								});
-
-							if (itr == spSink->rows.cend())
-							{
-								break;
-							}
-
-							const auto index = static_cast<response::IntType>(
-								std::distance(spSink->rows.cbegin(), itr));
-
-							spSink->rows.erase(itr);
-							items.push_back(
-								std::make_shared<typename SubscriptionTraits<T>::Removed>(index,
-									indexKey));
-						}
-
-						break;
-				}
-
-				if (reload)
-				{
-					items.clear();
-					spSink->rows = spThis->LoadRows<T>(key, spSink->store, spSink->table);
-					items.push_back(
-						std::make_shared<typename SubscriptionTraits<T>::Reloaded>(spSink->rows));
+				case TABLE_CHANGED:
+				case TABLE_ERROR:
+				case TABLE_RELOAD:
+					reload = true;
 					break;
-				}
-			}
 
-			if (!items.empty())
-			{
-				service::SubscriptionFilterCallback argumentsMatch =
-					[argumentName, &argumentValue, &key](
-						response::MapType::const_reference required) noexcept -> bool {
-					if (required.first != argumentName)
+				case TABLE_ROW_ADDED:
+					if (notif.info.tab.propPrior.ulPropTag == PR_INSTANCE_KEY)
 					{
-						return false;
+						// Find the insertion point if it's in our cache window.
+						const auto beginKey = reinterpret_cast<const std::uint8_t*>(
+							notif.info.tab.propPrior.Value.bin.lpb);
+						const auto endKey =
+							beginKey + static_cast<size_t>(notif.info.tab.propPrior.Value.bin.cb);
+						const response::IdType priorKey { beginKey, endKey };
+						const auto itrPrior = std::find_if(spSink->rows.cbegin(),
+							spSink->rows.cend(),
+							[&priorKey](const std::shared_ptr<T>& item) noexcept {
+								return item->instanceKey() == priorKey;
+							});
+
+						if (itrPrior == spSink->rows.cend())
+						{
+							break;
+						}
+
+						const auto& row = notif.info.tab.row;
+						const size_t columnCount = static_cast<size_t>(row.cValues);
+						mapi_ptr<SPropValue> columns;
+
+						CORt(ScDupPropset(row.cValues,
+							row.lpProps,
+							::MAPIAllocateBuffer,
+							&out_ptr { columns }));
+						CFRt(columns != nullptr);
+
+						const auto itr = itrPrior + 1;
+						const auto index =
+							static_cast<int>(std::distance(spSink->rows.cbegin(), itr));
+						auto item = std::make_shared<T>(spSink->store,
+							nullptr,
+							columnCount,
+							std::move(columns));
+
+						spSink->rows.insert(itr, item);
+						items.push_back(std::make_shared<typename SubscriptionTraits<T>::Change>(
+							std::make_shared<typename SubscriptionTraits<T>::AddedObject>(
+								std::make_shared<typename SubscriptionTraits<T>::Added>(index,
+									std::move(item)))));
 					}
 
-					const auto matchValue =
-						service::ModifiedArgument<ArgumentType>::convert(required.second);
+					break;
 
-					return matchValue == argumentValue;
-				};
+				case TABLE_ROW_MODIFIED:
+					if (notif.info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY)
+					{
+						// Find the insertion point if it's in our cache window.
+						const auto beginKey = reinterpret_cast<const std::uint8_t*>(
+							notif.info.tab.propIndex.Value.bin.lpb);
+						const auto endKey =
+							beginKey + static_cast<size_t>(notif.info.tab.propIndex.Value.bin.cb);
+						const response::IdType indexKey { beginKey, endKey };
+						const auto itr = std::find_if(spSink->rows.begin(),
+							spSink->rows.end(),
+							[&indexKey](const std::shared_ptr<T>& item) noexcept {
+								return item->instanceKey() == indexKey;
+							});
 
-				service::SubscriptionFilterCallback directivesMatch =
-					[&key](response::MapType::const_reference required) noexcept -> bool {
-					auto itrDirective = key.directives.find(required.first);
+						if (itr == spSink->rows.cend())
+						{
+							break;
+						}
 
-					return (itrDirective != key.directives.end()
-						&& itrDirective->second == required.second);
-				};
+						const auto& row = notif.info.tab.row;
+						const size_t columnCount = static_cast<size_t>(row.cValues);
+						mapi_ptr<SPropValue> columns;
 
-				spService->deliver(launch,
-					fieldName,
-					argumentsMatch,
-					directivesMatch,
-					std::make_shared<PayloadType>(std::move(items)));
+						CORt(ScDupPropset(row.cValues,
+							row.lpProps,
+							::MAPIAllocateBuffer,
+							&out_ptr { columns }));
+						CFRt(columns != nullptr);
+
+						const auto index =
+							static_cast<int>(std::distance(spSink->rows.begin(), itr));
+						auto item = std::make_shared<T>(spSink->store,
+							nullptr,
+							columnCount,
+							std::move(columns));
+
+						*itr = item;
+						items.push_back(std::make_shared<typename SubscriptionTraits<T>::Change>(
+							std::make_shared<typename SubscriptionTraits<T>::UpdatedObject>(
+								std::make_shared<typename SubscriptionTraits<T>::Updated>(index,
+									std::move(item)))));
+					}
+
+					break;
+
+				case TABLE_ROW_DELETED:
+					if (notif.info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY)
+					{
+						// Find the insertion point if it's in our cache window.
+						const auto beginKey = reinterpret_cast<const std::uint8_t*>(
+							notif.info.tab.propIndex.Value.bin.lpb);
+						const auto endKey =
+							beginKey + static_cast<size_t>(notif.info.tab.propIndex.Value.bin.cb);
+						const response::IdType indexKey { beginKey, endKey };
+						const auto itr = std::find_if(spSink->rows.cbegin(),
+							spSink->rows.cend(),
+							[&indexKey](const std::shared_ptr<T>& item) noexcept {
+								return item->instanceKey() == indexKey;
+							});
+
+						if (itr == spSink->rows.cend())
+						{
+							break;
+						}
+
+						const auto index =
+							static_cast<int>(std::distance(spSink->rows.cbegin(), itr));
+
+						spSink->rows.erase(itr);
+						items.push_back(std::make_shared<typename SubscriptionTraits<T>::Change>(
+							std::make_shared<typename SubscriptionTraits<T>::RemovedObject>(
+								std::make_shared<typename SubscriptionTraits<T>::Removed>(index,
+									indexKey))));
+					}
+
+					break;
 			}
-		}));
+
+			if (reload)
+			{
+				items.clear();
+				spSink->rows = spThis->LoadRows<T>(key, spSink->store, spSink->table);
+				items.push_back(std::make_shared<typename SubscriptionTraits<T>::Change>(
+					std::make_shared<typename SubscriptionTraits<T>::ReloadedObject>(
+						std::make_shared<typename SubscriptionTraits<T>::Reloaded>(spSink->rows))));
+				break;
+			}
+		}
+
+		if (!items.empty())
+		{
+			service::SubscriptionArgumentFilterCallback argumentsMatch =
+				[argumentName, &argumentValue, &key](
+					response::MapType::const_reference required) noexcept -> bool {
+				if (required.first != argumentName)
+				{
+					return false;
+				}
+
+				const auto matchValue =
+					service::ModifiedArgument<ArgumentType>::convert(required.second);
+
+				return matchValue == argumentValue;
+			};
+
+			service::SubscriptionDirectiveFilterCallback directivesMatch =
+				[&key](service::Directives::const_reference required) noexcept -> bool {
+				const auto itrDirective = std::find_if(key.directives.cbegin(),
+					key.directives.cend(),
+					[directiveName = required.first](const auto& directive) noexcept {
+						return directiveName == directive.first;
+					});
+
+				return (itrDirective != key.directives.end()
+					&& itrDirective->second == required.second);
+			};
+
+			spService->deliver(
+				{ { service::SubscriptionFilter { fieldName, argumentsMatch, directivesMatch } },
+					launch,
+					std::make_shared<object::Subscription>(
+						std::make_shared<PayloadType>(std::move(items))) });
+		}
+	}));
 
 	CORt(registration.sink->table->Advise(fnevTableModified, sinkProxy, &connectionId));
 	sinkProxy->OnAdvise(registration.sink->table, connectionId);
@@ -574,10 +609,8 @@ bool operator<(const PropIdInput& lhs, const PropIdInput& rhs)
 	CFRt(lhs.named->propset.type() == response::Type::String);
 	CFRt(rhs.named->propset.type() == response::Type::String);
 
-	const auto lhsPropset =
-		convert::guid::from_string(lhs.named->propset.get<response::StringType>());
-	const auto rhsPropset =
-		convert::guid::from_string(rhs.named->propset.get<response::StringType>());
+	const auto lhsPropset = convert::guid::from_string(lhs.named->propset.get<std::string>());
+	const auto rhsPropset = convert::guid::from_string(rhs.named->propset.get<std::string>());
 	const auto comparePropset = memcmp(&lhsPropset, &rhsPropset, sizeof(lhsPropset));
 
 	if (comparePropset < 0)
@@ -646,27 +679,34 @@ bool operator<(const Order& lhs, const Order& rhs)
 }
 
 template <typename T, service::TypeModifier... Modifiers>
-int CompareDirectives(const std::string& directiveName, const std::string& argumentName,
-	const response::Value& lhs, const response::Value& rhs)
+int CompareDirectives(std::string_view directiveName, std::string_view argumentName,
+	const service::Directives& lhs, const service::Directives& rhs)
 {
-	auto lhsDirective = service::ModifiedArgument<response::Value>::find(directiveName, lhs);
-	auto rhsDirective = service::ModifiedArgument<response::Value>::find(directiveName, rhs);
+	const auto itrLhs =
+		std::find_if(lhs.begin(), lhs.end(), [directiveName](const auto& entry) noexcept {
+			return entry.first == directiveName;
+		});
 
-	if (lhsDirective.second || rhsDirective.second)
+	const auto itrRhs =
+		std::find_if(rhs.begin(), rhs.end(), [directiveName](const auto& entry) noexcept {
+			return entry.first == directiveName;
+		});
+
+	if (itrLhs != lhs.end() || itrRhs != rhs.end())
 	{
-		if (!lhsDirective.second)
+		if (itrLhs == lhs.end())
 		{
 			return -1;
 		}
-		else if (!rhsDirective.second)
+		else if (itrRhs == rhs.end())
 		{
 			return 1;
 		}
 
 		auto lhsArgument =
-			service::ModifiedArgument<T>::find<Modifiers...>(argumentName, lhsDirective.first);
+			service::ModifiedArgument<T>::template find<Modifiers...>(argumentName, itrLhs->second);
 		auto rhsArgument =
-			service::ModifiedArgument<T>::find<Modifiers...>(argumentName, rhsDirective.first);
+			service::ModifiedArgument<T>::template find<Modifiers...>(argumentName, itrRhs->second);
 
 		if (lhsArgument.second || rhsArgument.second)
 		{
@@ -708,15 +748,14 @@ bool Subscription::RegistrationKey::operator<(const RegistrationKey& rhs) const 
 	}
 
 	const int compareOffset =
-		CompareDirectives<response::IntType>("offset", "count", directives, rhs.directives);
+		CompareDirectives<int>("offset"sv, "count"sv, directives, rhs.directives);
 
 	if (compareOffset != 0)
 	{
 		return compareOffset < 0;
 	}
 
-	const int compareTake =
-		CompareDirectives<response::IntType>("take", "count", directives, rhs.directives);
+	const int compareTake = CompareDirectives<int>("take"sv, "count"sv, directives, rhs.directives);
 
 	if (compareTake != 0)
 	{
@@ -724,15 +763,15 @@ bool Subscription::RegistrationKey::operator<(const RegistrationKey& rhs) const 
 	}
 
 	const int compareSeek =
-		CompareDirectives<response::IdType>("seek", "id", directives, rhs.directives);
+		CompareDirectives<response::IdType>("seek"sv, "id"sv, directives, rhs.directives);
 
 	if (compareSeek != 0)
 	{
 		return compareSeek < 0;
 	}
 
-	const int compareColumns = CompareDirectives<Column, service::TypeModifier::List>("columns",
-		"ids",
+	const int compareColumns = CompareDirectives<Column, service::TypeModifier::List>("columns"sv,
+		"ids"sv,
 		directives,
 		rhs.directives);
 
@@ -741,8 +780,8 @@ bool Subscription::RegistrationKey::operator<(const RegistrationKey& rhs) const 
 		return compareColumns < 0;
 	}
 
-	const int compareOrders = CompareDirectives<Order, service::TypeModifier::List>("orderBy",
-		"sorts",
+	const int compareOrders = CompareDirectives<Order, service::TypeModifier::List>("orderBy"sv,
+		"sorts"sv,
 		directives,
 		rhs.directives);
 

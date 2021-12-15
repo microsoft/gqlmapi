@@ -5,14 +5,14 @@
 
 namespace graphql::mapi {
 
-BoolValue::BoolValue(response::BooleanType value)
-	: m_value{ value }
+BoolValue::BoolValue(bool value)
+	: m_value { value }
 {
 }
 
-service::FieldResult<response::BooleanType> BoolValue::getValue(service::FieldParams&& params) const
+bool BoolValue::getValue() const
 {
-	return { static_cast<response::BooleanType>(m_value) };
+	return m_value;
 }
 
 } // namespace graphql::mapi

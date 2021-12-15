@@ -6,18 +6,18 @@
 
 namespace graphql::mapi {
 
-FolderRemoved::FolderRemoved(response::IntType index, const response::IdType& removed)
+FolderRemoved::FolderRemoved(int index, const response::IdType& removed)
 	: m_index { index }
 	, m_removed { removed }
 {
 }
 
-service::FieldResult<response::IntType> FolderRemoved::getIndex(service::FieldParams&& params) const
+int FolderRemoved::getIndex() const
 {
 	return m_index;
 }
 
-service::FieldResult<response::IdType> FolderRemoved::getRemoved(service::FieldParams&& params) const
+const response::IdType& FolderRemoved::getRemoved() const
 {
 	return m_removed;
 }

@@ -5,6 +5,9 @@
 #include "Guid.h"
 #include "Types.h"
 
+#include "FolderObject.h"
+#include "PropertyObject.h"
+
 namespace graphql::mapi {
 
 // Comparator for mapi_ptr<MAPINAMEID> for std::map
@@ -90,7 +93,7 @@ Store::~Store()
 	}
 }
 
-const CComPtr<IMsgStore>& Store::store() const
+const CComPtr<IMsgStore>& Store::store()
 {
 	OpenStore();
 	return m_store;
@@ -106,13 +109,13 @@ const response::IdType& Store::rootId() const
 	return m_rootId;
 }
 
-const std::vector<std::shared_ptr<Folder>>& Store::rootFolders() const
+const std::vector<std::shared_ptr<Folder>>& Store::rootFolders()
 {
 	LoadRootFolders({});
 	return *m_rootFolders;
 }
 
-std::shared_ptr<Folder> Store::lookupRootFolder(const response::IdType& id) const
+std::shared_ptr<Folder> Store::lookupRootFolder(const response::IdType& id)
 {
 	LoadRootFolders({});
 
@@ -126,13 +129,13 @@ std::shared_ptr<Folder> Store::lookupRootFolder(const response::IdType& id) cons
 	return m_rootFolders->at(itr->second);
 }
 
-const std::map<SpecialFolder, response::IdType>& Store::specialFolders() const
+const std::map<SpecialFolder, response::IdType>& Store::specialFolders()
 {
 	LoadSpecialFolders();
 	return *m_specialFolders;
 }
 
-std::shared_ptr<Folder> Store::lookupSpecialFolder(SpecialFolder id) const
+std::shared_ptr<Folder> Store::lookupSpecialFolder(SpecialFolder id)
 {
 	LoadSpecialFolders();
 
@@ -147,7 +150,7 @@ std::shared_ptr<Folder> Store::lookupSpecialFolder(SpecialFolder id) const
 }
 
 std::vector<std::pair<ULONG, LPMAPINAMEID>> Store::lookupPropIdInputs(
-	std::vector<PropIdInput>&& namedProps) const
+	std::vector<PropIdInput>&& namedProps)
 {
 	std::vector<std::pair<ULONG, LPMAPINAMEID>> result(namedProps.size());
 	std::vector<std::pair<mapi_ptr<MAPINAMEID>, size_t>> resolve;
@@ -179,7 +182,7 @@ std::vector<std::pair<ULONG, LPMAPINAMEID>> Store::lookupPropIdInputs(
 		CORt(::MAPIAllocateBuffer(sizeof(*namedId) + sizeof(*namedId->lpguid),
 			reinterpret_cast<void**>(&out_ptr { namedId })));
 
-		const auto& propset = id.named->propset.get<response::StringType>();
+		const auto& propset = id.named->propset.get<std::string>();
 
 		namedId->lpguid = reinterpret_cast<LPGUID>(namedId.get() + 1);
 		*namedId->lpguid = convert::guid::from_string(propset);
@@ -264,8 +267,7 @@ std::vector<std::pair<ULONG, LPMAPINAMEID>> Store::lookupPropIdInputs(
 	return result;
 }
 
-std::vector<std::pair<ULONG, LPMAPINAMEID>> Store::lookupPropIds(
-	const std::vector<ULONG>& propIds) const
+std::vector<std::pair<ULONG, LPMAPINAMEID>> Store::lookupPropIds(const std::vector<ULONG>& propIds)
 {
 	std::vector<std::pair<ULONG, LPMAPINAMEID>> result(propIds.size());
 	std::vector<std::pair<ULONG, size_t>> resolve;
@@ -390,7 +392,7 @@ response::IdType Store::GetIdColumn(DefaultColumn column) const
 	return { idBegin, idEnd };
 }
 
-response::StringType Store::GetStringColumn(DefaultColumn column) const
+std::string Store::GetStringColumn(DefaultColumn column) const
 {
 	const auto& stringProp = GetColumnProp(column);
 
@@ -403,7 +405,7 @@ response::StringType Store::GetStringColumn(DefaultColumn column) const
 }
 
 std::vector<std::shared_ptr<object::Property>> Store::GetColumns(
-	size_t columnCount, const LPSPropValue columns) const
+	size_t columnCount, const LPSPropValue columns)
 {
 	std::map<ULONG, Property::id_variant> idMap;
 	std::vector<std::pair<Property::id_variant, mapi_ptr<SPropValue>>> idValuePairs;
@@ -454,14 +456,15 @@ std::vector<std::shared_ptr<object::Property>> Store::GetColumns(
 	std::vector<std::shared_ptr<object::Property>> result(idValuePairs.size());
 
 	std::transform(idValuePairs.begin(), idValuePairs.end(), result.begin(), [](auto& entry) {
-		return std::make_shared<Property>(std::move(entry.first), std::move(entry.second));
+		return std::make_shared<object::Property>(
+			std::make_shared<Property>(std::move(entry.first), std::move(entry.second)));
 	});
 
 	return result;
 }
 
 std::vector<std::shared_ptr<object::Property>> Store::GetProperties(
-	IMAPIProp* pObject, std::optional<std::vector<Column>>&& idsArg) const
+	IMAPIProp* pObject, std::optional<std::vector<Column>>&& idsArg)
 {
 	std::map<ULONG, Property::id_variant> idMap;
 	std::vector<std::pair<Property::id_variant, mapi_ptr<SPropValue>>> idValuePairs;
@@ -591,14 +594,15 @@ std::vector<std::shared_ptr<object::Property>> Store::GetProperties(
 	std::vector<std::shared_ptr<object::Property>> result(idValuePairs.size());
 
 	std::transform(idValuePairs.begin(), idValuePairs.end(), result.begin(), [](auto& entry) {
-		return std::make_shared<Property>(std::move(entry.first), std::move(entry.second));
+		return std::make_shared<object::Property>(
+			std::make_shared<Property>(std::move(entry.first), std::move(entry.second)));
 	});
 
 	return result;
 }
 
 void Store::ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSPropValue propEnd,
-	std::vector<PropertyInput>&& input) const
+	std::vector<PropertyInput>&& input)
 {
 	std::vector<PropIdInput> propIds(input.size());
 
@@ -667,7 +671,7 @@ void Store::ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSP
 			CFRt(!value.bin);
 			CFRt(!value.stream);
 
-			const auto& str = value.guid->get<response::StringType>();
+			const auto& str = value.guid->get<std::string>();
 
 			prop.ulPropTag = PROP_TAG(PT_CLSID, propId);
 			CORt(::MAPIAllocateMore(static_cast<ULONG>(sizeof(*prop.Value.lpguid)),
@@ -681,7 +685,7 @@ void Store::ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSP
 			CFRt(!value.bin);
 			CFRt(!value.stream);
 
-			const auto& str = value.guid->get<response::StringType>();
+			const auto& str = value.guid->get<std::string>();
 
 			prop.ulPropTag = PROP_TAG(PT_SYSTIME, propId);
 			prop.Value.ft = convert::datetime::from_string(str);
@@ -713,7 +717,7 @@ void Store::ConvertPropertyInputs(void* pAllocMore, LPSPropValue propBegin, LPSP
 	CFRt(propBegin == propEnd);
 }
 
-std::shared_ptr<Folder> Store::OpenFolder(const response::IdType& folderId) const
+std::shared_ptr<Folder> Store::OpenFolder(const response::IdType& folderId)
 {
 	auto itr = m_folderCache.find(folderId);
 
@@ -744,17 +748,16 @@ std::shared_ptr<Folder> Store::OpenFolder(const response::IdType& folderId) cons
 	CFRt(cValues == folderProps->cValues);
 	CFRt(values != nullptr);
 
-	auto result =
-		std::make_shared<Folder>(std::static_pointer_cast<const Store>(shared_from_this()),
-			folder,
-			static_cast<size_t>(cValues),
-			std::move(values));
+	auto result = std::make_shared<Folder>(shared_from_this(),
+		folder,
+		static_cast<size_t>(cValues),
+		std::move(values));
 
 	CacheFolder(result);
 	return result;
 }
 
-std::shared_ptr<Item> Store::OpenItem(const response::IdType& itemId) const
+std::shared_ptr<Item> Store::OpenItem(const response::IdType& itemId)
 {
 	auto itr = m_itemCache.find(itemId);
 
@@ -783,7 +786,7 @@ std::shared_ptr<Item> Store::OpenItem(const response::IdType& itemId) const
 	CFRt(cValues == itemProps->cValues);
 	CFRt(values != nullptr);
 
-	auto result = std::make_shared<Item>(std::static_pointer_cast<const Store>(shared_from_this()),
+	auto result = std::make_shared<Item>(shared_from_this(),
 		item,
 		static_cast<size_t>(cValues),
 		std::move(values));
@@ -792,23 +795,23 @@ std::shared_ptr<Item> Store::OpenItem(const response::IdType& itemId) const
 	return result;
 }
 
-void Store::CacheFolder(const std::shared_ptr<Folder>& folder) const
+void Store::CacheFolder(const std::shared_ptr<Folder>& folder)
 {
 	m_folderCache.insert(std::make_pair(folder->id(), folder));
 }
 
-void Store::CacheItem(const std::shared_ptr<Item>& item) const
+void Store::CacheItem(const std::shared_ptr<Item>& item)
 {
 	m_itemCache.insert(std::make_pair(item->id(), item));
 }
 
-void Store::ClearCaches() const
+void Store::ClearCaches()
 {
 	m_folderCache.clear();
 	m_itemCache.clear();
 }
 
-void Store::OpenStore() const
+void Store::OpenStore()
 {
 	if (m_store)
 	{
@@ -915,7 +918,7 @@ void Store::OpenStore() const
 	}
 }
 
-void Store::LoadSpecialFolders() const
+void Store::LoadSpecialFolders()
 {
 	if (m_specialFolders)
 	{
@@ -954,7 +957,7 @@ void Store::LoadSpecialFolders() const
 	}
 }
 
-void Store::LoadRootFolders(response::Value&& fieldDirectives) const
+void Store::LoadRootFolders(service::Directives&& fieldDirectives)
 {
 	if (m_rootFolderDirectives != fieldDirectives)
 	{
@@ -986,8 +989,7 @@ void Store::LoadRootFolders(response::Value&& fieldDirectives) const
 	OpenStore();
 	LoadSpecialFolders();
 
-	const TableDirectives directives { std::static_pointer_cast<const Store>(shared_from_this()),
-		m_rootFolderDirectives };
+	const TableDirectives directives { shared_from_this(), m_rootFolderDirectives };
 	CComPtr<IMAPITable> sptable;
 
 	CORt(m_ipmSubtree->GetHierarchyTable(MAPI_DEFERRED_ERRORS | MAPI_UNICODE, &sptable));
@@ -1005,10 +1007,7 @@ void Store::LoadRootFolders(response::Value&& fieldDirectives) const
 		row.lpProps = nullptr;
 
 		auto folder =
-			std::make_shared<Folder>(std::static_pointer_cast<const Store>(shared_from_this()),
-				nullptr,
-				columnCount,
-				std::move(columns));
+			std::make_shared<Folder>(shared_from_this(), nullptr, columnCount, std::move(columns));
 
 		CacheFolder(folder);
 		m_rootFolderIds->insert(std::make_pair(folder->id(), m_rootFolders->size()));
@@ -1017,7 +1016,7 @@ void Store::LoadRootFolders(response::Value&& fieldDirectives) const
 
 	if (!m_rootFolderSink)
 	{
-		auto spThis = std::static_pointer_cast<const Store>(shared_from_this());
+		auto spThis = shared_from_this();
 		CComPtr<AdviseSinkProxy<IMAPITable>> sinkProxy;
 		ULONG_PTR connectionId = 0;
 
@@ -1066,18 +1065,17 @@ mapi_ptr<SPropTagArray> Store::GetItemProperties() const
 	return itemProps;
 }
 
-service::FieldResult<response::IdType> Store::getId(service::FieldParams&& params) const
+const response::IdType& Store::getId() const
 {
-	return { m_id };
+	return m_id;
 }
 
-service::FieldResult<response::StringType> Store::getName(service::FieldParams&& params) const
+const std::string& Store::getName() const
 {
-	return { m_name };
+	return m_name;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Store::getColumns(
-	service::FieldParams&& params) const
+std::vector<std::shared_ptr<object::Property>> Store::getColumns()
 {
 	const auto offset = static_cast<size_t>(DefaultColumn::Count);
 
@@ -1085,8 +1083,8 @@ service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Store::getC
 	return { GetColumns(m_columnCount - offset, m_columns.get() + offset) };
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Store::getRootFolders(
-	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const
+std::vector<std::shared_ptr<object::Folder>> Store::getRootFolders(
+	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg)
 {
 	std::vector<std::shared_ptr<object::Folder>> result {};
 
@@ -1100,7 +1098,7 @@ service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Store::getRoo
 			idsArg->cend(),
 			result.begin(),
 			[this](const response::IdType& id) noexcept {
-				return std::static_pointer_cast<object::Folder>(lookupRootFolder(id));
+				return std::make_shared<object::Folder>(lookupRootFolder(id));
 			});
 	}
 	else
@@ -1111,15 +1109,15 @@ service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Store::getRoo
 			m_rootFolders->cend(),
 			result.begin(),
 			[this](const std::shared_ptr<Folder>& folder) noexcept {
-				return std::static_pointer_cast<object::Folder>(folder);
+				return std::make_shared<object::Folder>(folder);
 			});
 	}
 
 	return result;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Store::getSpecialFolders(
-	service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const
+std::vector<std::shared_ptr<object::Folder>> Store::getSpecialFolders(
+	std::vector<SpecialFolder>&& idsArg)
 {
 	std::vector<std::shared_ptr<object::Folder>> result {};
 
@@ -1131,15 +1129,14 @@ service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Store::getSpe
 		idsArg.cend(),
 		result.begin(),
 		[this](SpecialFolder id) noexcept {
-			return std::static_pointer_cast<object::Folder>(lookupSpecialFolder(id));
+			return std::make_shared<object::Folder>(lookupSpecialFolder(id));
 		});
 
 	return result;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Store::getFolderProperties(
-	service::FieldParams&& params, response::IdType&& folderIdArg,
-	std::optional<std::vector<Column>>&& idsArg) const
+std::vector<std::shared_ptr<object::Property>> Store::getFolderProperties(
+	response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg)
 {
 	auto folder = OpenFolder(folderIdArg);
 
@@ -1147,9 +1144,8 @@ service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Store::getF
 	return { GetProperties(static_cast<IMAPIFolder*>(folder->folder()), std::move(idsArg)) };
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Store::getItemProperties(
-	service::FieldParams&& params, response::IdType&& itemIdArg,
-	std::optional<std::vector<Column>>&& idsArg) const
+std::vector<std::shared_ptr<object::Property>> Store::getItemProperties(
+	response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg)
 {
 	auto item = OpenItem(itemIdArg);
 

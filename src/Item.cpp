@@ -4,6 +4,11 @@
 #include "DateTime.h"
 #include "Types.h"
 
+#include "AttachmentObject.h"
+#include "ConversationObject.h"
+#include "FileAttachmentObject.h"
+#include "FolderObject.h"
+
 namespace graphql::mapi {
 
 constexpr ULONG GetColumnPropType(Item::DefaultColumn column)
@@ -23,7 +28,7 @@ static_assert(GetColumnPropType(Item::DefaultColumn::Received) == PT_SYSTIME, "t
 static_assert(GetColumnPropType(Item::DefaultColumn::Modified) == PT_SYSTIME, "type mismatch");
 static_assert(GetColumnPropType(Item::DefaultColumn::Preview) == PT_UNICODE, "type mismatch");
 
-Item::Item(const std::shared_ptr<const Store>& store, IMessage* pMessage, size_t columnCount,
+Item::Item(const std::shared_ptr<Store>& store, IMessage* pMessage, size_t columnCount,
 	mapi_ptr<SPropValue>&& columns)
 	: m_store { store }
 	, m_columnCount { columnCount }
@@ -53,27 +58,27 @@ const response::IdType& Item::id() const
 	return m_id;
 }
 
-const response::StringType& Item::subject() const
+const std::string& Item::subject() const
 {
 	return m_subject;
 }
 
-const std::optional<response::StringType>& Item::sender() const
+const std::optional<std::string>& Item::sender() const
 {
 	return m_sender;
 }
 
-const std::optional<response::StringType>& Item::to() const
+const std::optional<std::string>& Item::to() const
 {
 	return m_to;
 }
 
-const std::optional<response::StringType>& Item::cc() const
+const std::optional<std::string>& Item::cc() const
 {
 	return m_cc;
 }
 
-response::BooleanType Item::read() const
+bool Item::read() const
 {
 	return m_read;
 }
@@ -88,7 +93,7 @@ const FILETIME& Item::modified() const
 	return m_modified;
 }
 
-const CComPtr<IMessage>& Item::message() const
+const CComPtr<IMessage>& Item::message()
 {
 	OpenItem();
 	return m_message;
@@ -118,7 +123,7 @@ response::IdType Item::GetIdColumn(DefaultColumn column) const
 	return { idBegin, idEnd };
 }
 
-response::StringType Item::GetStringColumn(DefaultColumn column) const
+std::string Item::GetStringColumn(DefaultColumn column) const
 {
 	const auto& stringProp = GetColumnProp(column);
 
@@ -130,7 +135,7 @@ response::StringType Item::GetStringColumn(DefaultColumn column) const
 	return convert::utf8::to_utf8(stringProp.Value.lpszW);
 }
 
-response::BooleanType Item::GetReadColumn(DefaultColumn column) const
+bool Item::GetReadColumn(DefaultColumn column) const
 {
 	const auto& messageFlagsProp = GetColumnProp(column);
 
@@ -147,7 +152,7 @@ FILETIME Item::GetTimeColumn(DefaultColumn column) const
 	return timeProp.Value.ft;
 }
 
-void Item::OpenItem() const
+void Item::OpenItem()
 {
 	if (m_message)
 	{
@@ -166,79 +171,69 @@ void Item::OpenItem() const
 	CFRt(objType == MAPI_MESSAGE);
 }
 
-service::FieldResult<response::IdType> Item::getId(service::FieldParams&& params) const
+const response::IdType& Item::getId() const
 {
 	return m_id;
 }
 
-service::FieldResult<std::shared_ptr<object::Folder>> Item::getParentFolder(
-	service::FieldParams&& params) const
+std::shared_ptr<object::Folder> Item::getParentFolder() const
 {
-	return m_store.lock()->OpenFolder(m_parentId);
+	return std::make_shared<object::Folder>(m_store.lock()->OpenFolder(m_parentId));
 }
 
-service::FieldResult<std::shared_ptr<object::Conversation>> Item::getConversation(
-	service::FieldParams&& params) const
+std::shared_ptr<object::Conversation> Item::getConversation(service::FieldParams&& params) const
 {
 	// NYI
-	return std::shared_ptr<object::Conversation> {};
+	return {};
 }
 
-service::FieldResult<response::StringType> Item::getSubject(service::FieldParams&& params) const
+const std::string& Item::getSubject() const
 {
 	return m_subject;
 }
 
-service::FieldResult<std::optional<response::StringType>> Item::getSender(
-	service::FieldParams&& params) const
+std::optional<std::string> Item::getSender() const
 {
 	return m_sender;
 }
 
-service::FieldResult<std::optional<response::StringType>> Item::getTo(
-	service::FieldParams&& params) const
+std::optional<std::string> Item::getTo() const
 {
 	return m_to;
 }
 
-service::FieldResult<std::optional<response::StringType>> Item::getCc(
-	service::FieldParams&& params) const
+std::optional<std::string> Item::getCc() const
 {
 	return m_cc;
 }
 
-service::FieldResult<std::optional<response::Value>> Item::getBody(
-	service::FieldParams&& params) const
+std::optional<response::Value> Item::getBody(service::FieldParams&& params) const
 {
 	// NYI
 	return std::nullopt;
 }
 
-service::FieldResult<response::BooleanType> Item::getRead(service::FieldParams&& params) const
+bool Item::getRead() const
 {
 	return m_read;
 }
 
-service::FieldResult<std::optional<response::Value>> Item::getReceived(
-	service::FieldParams&& params) const
+std::optional<response::Value> Item::getReceived() const
 {
 	return std::make_optional<response::Value>(convert::datetime::to_string(m_received));
 }
 
-service::FieldResult<std::optional<response::Value>> Item::getModified(
-	service::FieldParams&& params) const
+std::optional<response::Value> Item::getModified() const
 {
 	return std::make_optional<response::Value>(convert::datetime::to_string(m_modified));
 }
 
-service::FieldResult<std::optional<response::StringType>> Item::getPreview(
-	service::FieldParams&& params) const
+std::optional<std::string> Item::getPreview() const
 {
 	return m_preview;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Item::getColumns(
-	service::FieldParams&& params) const
+std::vector<std::shared_ptr<object::Property>> Item::getColumns() const
 {
 	auto store = m_store.lock();
 	const auto offset = static_cast<size_t>(DefaultColumn::Count);
@@ -247,11 +242,11 @@ service::FieldResult<std::vector<std::shared_ptr<object::Property>>> Item::getCo
 	return { store->GetColumns(m_columnCount - offset, m_columns.get() + offset) };
 }
 
-service::FieldResult<std::vector<std::shared_ptr<service::Object>>> Item::getAttachments(
+std::vector<std::shared_ptr<object::Attachment>> Item::getAttachments(
 	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const
 {
 	// NYI
-	return std::vector<std::shared_ptr<service::Object>> {};
+	return {};
 }
 
 } // namespace graphql::mapi

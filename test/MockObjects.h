@@ -8,7 +8,7 @@
 
 #include <gmock/gmock.h>
 
-#include "MAPIObjects.h"
+#include "MAPISchema.h"
 
 namespace Mock {
 
@@ -16,50 +16,45 @@ using namespace graphql;
 using namespace graphql::service;
 using namespace graphql::mapi;
 
-class MockQuery : public object::Query
+class MockQuery
 {
 public:
 	explicit MockQuery();
 
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Store>>>, getStores,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Store>>, getStores,
+		(service::FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
 };
 
-class MockStore : public object::Store
+class MockStore
 {
 public:
 	explicit MockStore();
 
-	MOCK_METHOD(FieldResult<response::IdType>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(
-		FieldResult<response::StringType>, getName, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getColumns,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Folder>>>, getRootFolders,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Folder>>>, getSpecialFolders,
-		(FieldParams && params, std::vector<SpecialFolder>&& idsArg), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getFolderProperties,
-		(FieldParams && params, response::IdType&& folderIdArg,
-			std::optional<std::vector<Column>>&& idsArg),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getItemProperties,
-		(FieldParams && params, response::IdType&& folderIdArg,
-			std::optional<std::vector<Column>>&& idsArg),
-		(const, final));
+	MOCK_METHOD(const response::IdType&, getId, (), (const));
+	MOCK_METHOD(std::string, getName, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getColumns, ());
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Folder>>, getRootFolders,
+		(service::FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Folder>>, getSpecialFolders,
+		(std::vector<SpecialFolder> && idsArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getFolderProperties,
+		(response::IdType && folderIdArg, std::optional<std::vector<Column>>&& idsArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getItemProperties,
+		(response::IdType && itemIdArg, std::optional<std::vector<Column>>&& idsArg));
 };
 
 MATCHER_P(MatchPropIdInts, propIds, "integer property IDs match")
 {
-	const auto directive =
-		service::ModifiedArgument<response::Value>::require("columns", arg.fieldDirectives);
+	const auto itr = std::find_if(arg.fieldDirectives.cbegin(),
+		arg.fieldDirectives.cend(),
+		[](const auto& entry) noexcept {
+			return entry.first == "columns";
+		});
 	const auto columns =
-		service::ModifiedArgument<Column>::require<service::TypeModifier::List>("ids", directive);
+		service::ModifiedArgument<Column>::require<service::TypeModifier::List>("ids", itr->second);
 	size_t count = 0;
 	bool failed = false;
-	std::vector<response::IntType> argIds(columns.size());
+	std::vector<int> argIds(columns.size());
 
 	std::transform(columns.cbegin(),
 		columns.cend(),
@@ -79,125 +74,99 @@ MATCHER_P(MatchPropIdInts, propIds, "integer property IDs match")
 	return !failed && argIds == propIds;
 }
 
-class MockProperty : public object::Property
+class MockProperty
 {
 public:
 	explicit MockProperty();
 
-	MOCK_METHOD(
-		FieldResult<std::shared_ptr<Object>>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(
-		FieldResult<std::shared_ptr<Object>>, getValue, (FieldParams && params), (const, final));
+	MOCK_METHOD(std::shared_ptr<object::PropId>, getId, (), (const));
+	MOCK_METHOD(std::shared_ptr<object::PropValue>, getValue, (), (const));
 };
 
-class MockIntId : public object::IntId
+class MockIntId
 {
 public:
 	explicit MockIntId();
 
-	MOCK_METHOD(FieldResult<response::IntType>, getId, (FieldParams && params), (const, final));
+	MOCK_METHOD(int, getId, (), (const));
 };
 
-class MockStringValue : public object::StringValue
+class MockStringValue
 {
 public:
 	explicit MockStringValue();
 
-	MOCK_METHOD(
-		FieldResult<response::StringType>, getValue, (FieldParams && params), (const, final));
+	MOCK_METHOD(std::string, getValue, (), (const));
 };
 
-class MockFolder : public object::Folder
+class MockFolder
 {
 public:
 	explicit MockFolder();
 
-	MOCK_METHOD(FieldResult<response::IdType>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Folder>>, getParentFolder,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Store>>, getStore, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(
-		FieldResult<response::StringType>, getName, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<response::IntType>, getCount, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<response::IntType>, getUnread, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<SpecialFolder>>, getSpecialFolder,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getColumns,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Folder>>>, getSubFolders,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Conversation>>>, getConversations,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Item>>>, getItems,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
+	MOCK_METHOD(const response::IdType&, getId, (), (const));
+	MOCK_METHOD(std::shared_ptr<object::Folder>, getParentFolder, (), (const));
+	MOCK_METHOD(std::shared_ptr<object::Store>, getStore, (), (const));
+	MOCK_METHOD(std::string, getName, (), (const));
+	MOCK_METHOD(int, getCount, (), (const));
+	MOCK_METHOD(int, getUnread, (), (const));
+	MOCK_METHOD(std::optional<SpecialFolder>, getSpecialFolder, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getColumns, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Folder>>, getSubFolders,
+		(service::FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Conversation>>, getConversations,
+		(service::FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Item>>, getItems,
+		(service::FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
 };
 
-class MockConversation : public object::Conversation
+class MockConversation
 {
 public:
 	explicit MockConversation();
 
-	MOCK_METHOD(FieldResult<response::IdType>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(
-		FieldResult<response::StringType>, getSubject, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<response::IntType>, getCount, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<response::IntType>, getUnread, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::Value>>, getReceived, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Item>>>, getItems,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
+	MOCK_METHOD(const response::IdType&, getId, (), (const));
+	MOCK_METHOD(const std::string&, getSubject, (), (const));
+	MOCK_METHOD(int, getCount, (), (const));
+	MOCK_METHOD(int, getUnread, (), (const));
+	MOCK_METHOD(std::optional<response::Value>, getReceived, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Item>>, getItems,
+		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg));
 };
 
-class MockItem : public object::Item
+class MockItem
 {
 public:
 	explicit MockItem();
 
-	MOCK_METHOD(FieldResult<response::IdType>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Folder>>, getParentFolder,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Conversation>>, getConversation,
-		(FieldParams && params), (const, final));
+	MOCK_METHOD(const response::IdType&, getId, (service::FieldParams && params), (const));
+	MOCK_METHOD(std::shared_ptr<object::Folder>, getParentFolder, (), (const));
 	MOCK_METHOD(
-		FieldResult<response::StringType>, getSubject, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::StringType>>, getSender,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::StringType>>, getTo, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::StringType>>, getCc, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::Value>>, getBody, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(
-		FieldResult<response::BooleanType>, getRead, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::Value>>, getReceived, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::Value>>, getModified, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::StringType>>, getPreview,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getColumns,
-		(FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<Object>>>, getAttachments,
-		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg),
-		(const, final));
+		std::shared_ptr<object::Conversation>, getConversation, (FieldParams && params), (const));
+	MOCK_METHOD(const std::string&, getSubject, (), (const));
+	MOCK_METHOD(std::optional<std::string>, getSender, (), (const));
+	MOCK_METHOD(std::optional<std::string>, getTo, (), (const));
+	MOCK_METHOD(std::optional<std::string>, getCc, (), (const));
+	MOCK_METHOD(std::optional<response::Value>, getBody, (), (const));
+	MOCK_METHOD(bool, getRead, (), (const));
+	MOCK_METHOD(std::optional<response::Value>, getReceived, (), (const));
+	MOCK_METHOD(std::optional<response::Value>, getModified, (), (const));
+	MOCK_METHOD(std::optional<std::string>, getPreview, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getColumns, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Attachment>>, getAttachments,
+		(FieldParams && params, std::optional<std::vector<response::IdType>>&& idsArg), (const));
 };
 
-class MockFileAttachment : public object::FileAttachment
+class MockFileAttachment
 {
 public:
 	explicit MockFileAttachment();
 
-	MOCK_METHOD(FieldResult<response::IdType>, getId, (FieldParams && params), (const, final));
-	MOCK_METHOD(
-		FieldResult<response::StringType>, getName, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::optional<response::Value>>, getContents, (FieldParams && params),
-		(const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Property>>>, getProperties,
-		(FieldParams && params, std::optional<std::vector<PropIdInput>>&& idsArg), (const, final));
+	MOCK_METHOD(const response::IdType&, getId, (), (const));
+	MOCK_METHOD(const std::string&, getName, (), (const));
+	MOCK_METHOD(std::optional<response::Value>, getContents, (), (const));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Property>>, getProperties,
+		(FieldParams && params, std::optional<std::vector<PropIdInput>>&& idsArg), (const));
 };
 
 MATCHER_P(MatchResolverContext, resolverContext, "resolverContext matches")
@@ -210,55 +179,52 @@ MATCHER_P(MatchObjectId, objectId, "objectId matches")
 	return arg.storeId == objectId.storeId && arg.objectId == objectId.objectId;
 }
 
-class MockSubscription : public object::Subscription
+class MockSubscription
 {
 public:
 	explicit MockSubscription();
 
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<Object>>>, getItems,
-		(FieldParams && params, ObjectId&& folderIdArg), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<Object>>>, getSubFolders,
-		(FieldParams && params, ObjectId&& parentFolderIdArg), (const, final));
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<Object>>>, getRootFolders,
-		(FieldParams && params, response::IdType&& storeIdArg), (const, final));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::ItemChange>>, getItems,
+		(service::FieldParams && params, ObjectId&& folderIdArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::FolderChange>>, getSubFolders,
+		(service::FieldParams && params, ObjectId&& parentFolderIdArg));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::FolderChange>>, getRootFolders,
+		(service::FieldParams && params, response::IdType&& storeIdArg));
 };
 
-class MockItemAdded : public object::ItemAdded
+class MockItemAdded
 {
 public:
 	explicit MockItemAdded();
 
-	MOCK_METHOD(FieldResult<response::IntType>, getIndex, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Item>>, getAdded, (FieldParams && params),
-		(const, final));
+	MOCK_METHOD(int, getIndex, (service::FieldParams && params), (const));
+	MOCK_METHOD(std::shared_ptr<object::Item>, getAdded, (service::FieldParams && params), (const));
 };
 
-class MockItemUpdated : public object::ItemUpdated
+class MockItemUpdated
 {
 public:
 	explicit MockItemUpdated();
 
-	MOCK_METHOD(FieldResult<response::IntType>, getIndex, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<std::shared_ptr<object::Item>>, getUpdated, (FieldParams && params),
-		(const, final));
+	MOCK_METHOD(int, getIndex, (), (const));
+	MOCK_METHOD(std::shared_ptr<object::Item>, getUpdated, (), (const));
 };
 
-class MockItemRemoved : public object::ItemRemoved
+class MockItemRemoved
 {
 public:
 	explicit MockItemRemoved();
 
-	MOCK_METHOD(FieldResult<response::IntType>, getIndex, (FieldParams && params), (const, final));
-	MOCK_METHOD(FieldResult<response::IdType>, getRemoved, (FieldParams && params), (const, final));
+	MOCK_METHOD(int, getIndex, (), (const));
+	MOCK_METHOD(const response::IdType&, getRemoved, (), (const));
 };
 
-class MockItemsReloaded : public object::ItemsReloaded
+class MockItemsReloaded
 {
 public:
 	explicit MockItemsReloaded();
 
-	MOCK_METHOD(FieldResult<std::vector<std::shared_ptr<object::Item>>>, getReloaded,
-		(FieldParams && params), (const, final));
+	MOCK_METHOD(std::vector<std::shared_ptr<object::Item>>, getReloaded, (), (const));
 };
 
 } // namespace Mock

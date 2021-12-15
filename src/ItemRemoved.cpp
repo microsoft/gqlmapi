@@ -6,18 +6,18 @@
 
 namespace graphql::mapi {
 
-ItemRemoved::ItemRemoved(response::IntType index, const response::IdType& removed)
+ItemRemoved::ItemRemoved(int index, const response::IdType& removed)
 	: m_index { index }
 	, m_removed { removed }
 {
 }
 
-service::FieldResult<response::IntType> ItemRemoved::getIndex(service::FieldParams&& params) const
+int ItemRemoved::getIndex() const
 {
 	return m_index;
 }
 
-service::FieldResult<response::IdType> ItemRemoved::getRemoved(service::FieldParams&& params) const
+const response::IdType& ItemRemoved::getRemoved() const
 {
 	return m_removed;
 }
