@@ -240,7 +240,7 @@ TEST(MAPISchemaTest, NotifySubscribeUnsubscribeItemAdded)
 		.WillOnce(ReturnRef(folderId.objectId));
 	ASSERT_TRUE(response::Type::Null == payload.type())
 		<< "should not set the payload till after the subscription event is delivered";
-	mockService->deliver({ { service::SubscriptionFilter { "items"sv } }, std::launch::async });
+	mockService->deliver({ "items"sv, {}, std::launch::async });
 	auto mockItemsNotifyUnsubscribe = std::vector { std::make_shared<object::ItemChange>(
 		std::make_shared<object::ItemAdded>(mockItemAdded)) };
 	EXPECT_CALL(*mockSubscription,

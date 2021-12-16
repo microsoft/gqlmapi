@@ -438,11 +438,11 @@ void Subscription::RegisterAdviseSinkProxy(service::await_async launch, std::str
 					&& itrDirective->second == required.second);
 			};
 
-			spService->deliver(
-				{ { service::SubscriptionFilter { fieldName, argumentsMatch, directivesMatch } },
-					launch,
-					std::make_shared<object::Subscription>(
-						std::make_shared<PayloadType>(std::move(items))) });
+			spService->deliver({ fieldName,
+				{ service::SubscriptionFilter { argumentsMatch, directivesMatch } },
+				launch,
+				std::make_shared<object::Subscription>(
+					std::make_shared<PayloadType>(std::move(items))) });
 		}
 	}));
 

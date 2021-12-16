@@ -48,92 +48,92 @@ enum class PropType
 
 struct ObjectId
 {
-	response::IdType storeId;
-	response::IdType objectId;
+	response::IdType storeId {};
+	response::IdType objectId {};
 };
 
 struct NamedPropInput
 {
-	response::Value propset;
-	std::optional<int> id;
-	std::optional<std::string> name;
+	response::Value propset {};
+	std::optional<int> id {};
+	std::optional<std::string> name {};
 };
 
 struct PropValueInput
 {
-	std::optional<int> integer;
-	std::optional<bool> boolean;
-	std::optional<std::string> string;
-	std::optional<response::Value> guid;
-	std::optional<response::Value> time;
-	std::optional<response::IdType> bin;
-	std::optional<response::Value> stream;
+	std::optional<int> integer {};
+	std::optional<bool> boolean {};
+	std::optional<std::string> string {};
+	std::optional<response::Value> guid {};
+	std::optional<response::Value> time {};
+	std::optional<response::IdType> bin {};
+	std::optional<response::Value> stream {};
 };
 
 struct MultipleItemsInput
 {
-	ObjectId folderId;
-	std::vector<response::IdType> itemIds;
+	ObjectId folderId {};
+	std::vector<response::IdType> itemIds {};
 };
 
 struct PropIdInput
 {
-	std::optional<int> id;
-	std::optional<NamedPropInput> named;
+	std::optional<int> id {};
+	std::optional<NamedPropInput> named {};
 };
 
 struct PropertyInput
 {
-	PropIdInput id;
-	PropValueInput value;
+	PropIdInput id {};
+	PropValueInput value {};
 };
 
 struct Order
 {
-	bool descending;
-	PropIdInput property;
-	PropType type;
+	bool descending {};
+	PropIdInput property {};
+	PropType type {};
 };
 
 struct Column
 {
-	PropIdInput property;
-	PropType type;
+	PropIdInput property {};
+	PropType type {};
 };
 
 struct CreateItemInput
 {
-	ObjectId folderId;
-	std::string subject;
-	std::optional<response::IdType> conversationId;
-	bool read;
-	std::optional<response::Value> received;
-	std::optional<response::Value> modified;
-	std::optional<std::vector<PropertyInput>> properties;
+	ObjectId folderId {};
+	std::string subject {};
+	std::optional<response::IdType> conversationId {};
+	bool read {};
+	std::optional<response::Value> received {};
+	std::optional<response::Value> modified {};
+	std::optional<std::vector<PropertyInput>> properties {};
 };
 
 struct CreateSubFolderInput
 {
-	ObjectId folderId;
-	std::string name;
-	std::optional<std::vector<PropertyInput>> properties;
+	ObjectId folderId {};
+	std::string name {};
+	std::optional<std::vector<PropertyInput>> properties {};
 };
 
 struct ModifyItemInput
 {
-	ObjectId id;
-	std::optional<std::string> subject;
-	std::optional<bool> read;
-	std::optional<std::vector<PropertyInput>> properties;
-	std::optional<std::vector<PropIdInput>> deleted;
+	ObjectId id {};
+	std::optional<std::string> subject {};
+	std::optional<bool> read {};
+	std::optional<std::vector<PropertyInput>> properties {};
+	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
 struct ModifyFolderInput
 {
-	ObjectId folderId;
-	std::optional<std::string> name;
-	std::optional<std::vector<PropertyInput>> properties;
-	std::optional<std::vector<PropIdInput>> deleted;
+	ObjectId folderId {};
+	std::optional<std::string> name {};
+	std::optional<std::vector<PropertyInput>> properties {};
+	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
 namespace object {
