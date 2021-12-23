@@ -74,7 +74,11 @@ if(BUILD_SHARED_LIBS)
     $<TARGET_FILE:cppgraphqlgen::graphqlservice>
     TYPE BIN)
 else()
-  install(TARGETS mapistub gqlmapiCommon EXPORT gqlmapi)
+  install(TARGETS
+      mapistub
+      mapi_schema
+      gqlmapiCommon
+    EXPORT gqlmapi)
 endif()
 
 file(GLOB PUBLIC_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
