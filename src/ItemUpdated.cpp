@@ -4,23 +4,24 @@
 #include "Types.h"
 #include "Unicode.h"
 
+#include "ItemObject.h"
+
 namespace graphql::mapi {
 
-ItemUpdated::ItemUpdated(response::IntType index, const std::shared_ptr<Item>& updated)
+ItemUpdated::ItemUpdated(int index, const std::shared_ptr<Item>& updated)
 	: m_index { index }
 	, m_updated { updated }
 {
 }
 
-service::FieldResult<response::IntType> ItemUpdated::getIndex(service::FieldParams&& params) const
+int ItemUpdated::getIndex() const
 {
 	return m_index;
 }
 
-service::FieldResult<std::shared_ptr<object::Item>> ItemUpdated::getUpdated(
-	service::FieldParams&& params) const
+std::shared_ptr<object::Item> ItemUpdated::getUpdated() const
 {
-	return std::static_pointer_cast<object::Item>(m_updated);
+	return std::make_shared<object::Item>(m_updated);
 }
 
 } // namespace graphql::mapi

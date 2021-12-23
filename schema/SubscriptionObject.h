@@ -11,24 +11,173 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::SubscriptionHas {
+
+template <class TImpl>
+concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, ObjectId folderIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> { impl.getItems(std::move(params), std::move(folderIdArg)) } };
+};
+
+template <class TImpl>
+concept getItems = requires (TImpl impl, ObjectId folderIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> { impl.getItems(std::move(folderIdArg)) } };
+};
+
+template <class TImpl>
+concept getSubFoldersWithParams = requires (TImpl impl, service::FieldParams params, ObjectId parentFolderIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getSubFolders(std::move(params), std::move(parentFolderIdArg)) } };
+};
+
+template <class TImpl>
+concept getSubFolders = requires (TImpl impl, ObjectId parentFolderIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getSubFolders(std::move(parentFolderIdArg)) } };
+};
+
+template <class TImpl>
+concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, response::IdType storeIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getRootFolders(std::move(params), std::move(storeIdArg)) } };
+};
+
+template <class TImpl>
+concept getRootFolders = requires (TImpl impl, response::IdType storeIdArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getRootFolders(std::move(storeIdArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::SubscriptionHas
 
 class Subscription
 	: public service::Object
 {
-protected:
-	explicit Subscription();
+private:
+	service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveSubFolders(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const = 0;
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const final
+		{
+			if constexpr (methods::SubscriptionHas::getItemsWithParams<T>)
+			{
+				return { _pimpl->getItems(std::move(params), std::move(folderIdArg)) };
+			}
+			else if constexpr (methods::SubscriptionHas::getItems<T>)
+			{
+				return { _pimpl->getItems(std::move(folderIdArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Subscription::getItems is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const final
+		{
+			if constexpr (methods::SubscriptionHas::getSubFoldersWithParams<T>)
+			{
+				return { _pimpl->getSubFolders(std::move(params), std::move(parentFolderIdArg)) };
+			}
+			else if constexpr (methods::SubscriptionHas::getSubFolders<T>)
+			{
+				return { _pimpl->getSubFolders(std::move(parentFolderIdArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Subscription::getSubFolders is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const final
+		{
+			if constexpr (methods::SubscriptionHas::getRootFoldersWithParams<T>)
+			{
+				return { _pimpl->getRootFolders(std::move(params), std::move(storeIdArg)) };
+			}
+			else if constexpr (methods::SubscriptionHas::getRootFolders<T>)
+			{
+				return { _pimpl->getRootFolders(std::move(storeIdArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Subscription::getRootFolders is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::SubscriptionHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::SubscriptionHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Subscription(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const = 0;
-	virtual service::FieldResult<std::vector<std::shared_ptr<service::Object>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveItems(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveSubFolders(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveRootFolders(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	Subscription(std::shared_ptr<T> pimpl) noexcept
+		: Subscription { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

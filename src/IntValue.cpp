@@ -5,14 +5,14 @@
 
 namespace graphql::mapi {
 
-IntValue::IntValue(response::IntType value)
-	: m_value{ value }
+IntValue::IntValue(int value)
+	: m_value { value }
 {
 }
 
-service::FieldResult<response::IntType> IntValue::getValue(service::FieldParams&& params) const
+int IntValue::getValue() const
 {
-	return { static_cast<response::IntType>(m_value) };
+	return m_value;
 }
 
 } // namespace graphql::mapi

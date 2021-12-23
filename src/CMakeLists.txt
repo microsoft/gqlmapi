@@ -37,11 +37,12 @@ add_library(gqlmapiCommon STATIC
   FoldersReloaded.cpp
   SubFoldersSubscription.cpp
   RootFoldersSubscription.cpp)
-target_include_directories(gqlmapiCommon PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories(gqlmapiCommon PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../schema>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_link_libraries(gqlmapiCommon PUBLIC
   mapistub
-  mapischema
-  cppgraphqlgen::graphqlintrospection
+  mapi_schema
   cppgraphqlgen::graphqljson)
 
 # Build a separate gqlmapi library as either static or shared depending on BUILD_SHARED_LIBS.
@@ -73,7 +74,11 @@ if(BUILD_SHARED_LIBS)
     $<TARGET_FILE:cppgraphqlgen::graphqlservice>
     TYPE BIN)
 else()
-  install(TARGETS mapistub gqlmapiCommon EXPORT gqlmapi)
+  install(TARGETS
+      mapistub
+      mapi_schema
+      gqlmapiCommon
+    EXPORT gqlmapi)
 endif()
 
 file(GLOB PUBLIC_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)

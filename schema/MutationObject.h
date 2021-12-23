@@ -11,36 +11,353 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::MutationHas {
+
+template <class TImpl>
+concept applyCreateItemWithParams = requires (TImpl impl, service::FieldParams params, CreateItemInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyCreateItem(std::move(params), std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyCreateItem = requires (TImpl impl, CreateItemInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyCreateItem(std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyCreateSubFolderWithParams = requires (TImpl impl, service::FieldParams params, CreateSubFolderInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyCreateSubFolder(std::move(params), std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyCreateSubFolder = requires (TImpl impl, CreateSubFolderInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyCreateSubFolder(std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyModifyItemWithParams = requires (TImpl impl, service::FieldParams params, ModifyItemInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyModifyItem(std::move(params), std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyModifyItem = requires (TImpl impl, ModifyItemInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyModifyItem(std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyModifyFolderWithParams = requires (TImpl impl, service::FieldParams params, ModifyFolderInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyModifyFolder(std::move(params), std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyModifyFolder = requires (TImpl impl, ModifyFolderInput inputArg) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyModifyFolder(std::move(inputArg)) } };
+};
+
+template <class TImpl>
+concept applyRemoveFolderWithParams = requires (TImpl impl, service::FieldParams params, ObjectId inputArg, bool hardDeleteArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyRemoveFolder(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) } };
+};
+
+template <class TImpl>
+concept applyRemoveFolder = requires (TImpl impl, ObjectId inputArg, bool hardDeleteArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyRemoveFolder(std::move(inputArg), std::move(hardDeleteArg)) } };
+};
+
+template <class TImpl>
+concept applyMarkAsReadWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool readArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyMarkAsRead(std::move(params), std::move(inputArg), std::move(readArg)) } };
+};
+
+template <class TImpl>
+concept applyMarkAsRead = requires (TImpl impl, MultipleItemsInput inputArg, bool readArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyMarkAsRead(std::move(inputArg), std::move(readArg)) } };
+};
+
+template <class TImpl>
+concept applyCopyItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyCopyItems(std::move(params), std::move(inputArg), std::move(destinationArg)) } };
+};
+
+template <class TImpl>
+concept applyCopyItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyCopyItems(std::move(inputArg), std::move(destinationArg)) } };
+};
+
+template <class TImpl>
+concept applyMoveItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyMoveItems(std::move(params), std::move(inputArg), std::move(destinationArg)) } };
+};
+
+template <class TImpl>
+concept applyMoveItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyMoveItems(std::move(inputArg), std::move(destinationArg)) } };
+};
+
+template <class TImpl>
+concept applyDeleteItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool hardDeleteArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyDeleteItems(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) } };
+};
+
+template <class TImpl>
+concept applyDeleteItems = requires (TImpl impl, MultipleItemsInput inputArg, bool hardDeleteArg) 
+{
+	{ service::AwaitableScalar<bool> { impl.applyDeleteItems(std::move(inputArg), std::move(hardDeleteArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::MutationHas
 
 class Mutation
 	: public service::Object
 {
-protected:
-	explicit Mutation();
+private:
+	service::AwaitableResolver resolveCreateItem(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveCreateSubFolder(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveModifyItem(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveModifyFolder(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveRemoveFolder(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveMarkAsRead(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveCopyItems(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveMoveItems(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveDeleteItems(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
+		virtual service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const = 0;
+		virtual service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const = 0;
+		virtual service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		virtual service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		virtual service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const final
+		{
+			if constexpr (methods::MutationHas::applyCreateItemWithParams<T>)
+			{
+				return { _pimpl->applyCreateItem(std::move(params), std::move(inputArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyCreateItem<T>)
+			{
+				return { _pimpl->applyCreateItem(std::move(inputArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyCreateItem is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const final
+		{
+			if constexpr (methods::MutationHas::applyCreateSubFolderWithParams<T>)
+			{
+				return { _pimpl->applyCreateSubFolder(std::move(params), std::move(inputArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyCreateSubFolder<T>)
+			{
+				return { _pimpl->applyCreateSubFolder(std::move(inputArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyCreateSubFolder is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const final
+		{
+			if constexpr (methods::MutationHas::applyModifyItemWithParams<T>)
+			{
+				return { _pimpl->applyModifyItem(std::move(params), std::move(inputArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyModifyItem<T>)
+			{
+				return { _pimpl->applyModifyItem(std::move(inputArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyModifyItem is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const final
+		{
+			if constexpr (methods::MutationHas::applyModifyFolderWithParams<T>)
+			{
+				return { _pimpl->applyModifyFolder(std::move(params), std::move(inputArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyModifyFolder<T>)
+			{
+				return { _pimpl->applyModifyFolder(std::move(inputArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyModifyFolder is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const final
+		{
+			if constexpr (methods::MutationHas::applyRemoveFolderWithParams<T>)
+			{
+				return { _pimpl->applyRemoveFolder(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyRemoveFolder<T>)
+			{
+				return { _pimpl->applyRemoveFolder(std::move(inputArg), std::move(hardDeleteArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyRemoveFolder is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const final
+		{
+			if constexpr (methods::MutationHas::applyMarkAsReadWithParams<T>)
+			{
+				return { _pimpl->applyMarkAsRead(std::move(params), std::move(inputArg), std::move(readArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyMarkAsRead<T>)
+			{
+				return { _pimpl->applyMarkAsRead(std::move(inputArg), std::move(readArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyMarkAsRead is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		{
+			if constexpr (methods::MutationHas::applyCopyItemsWithParams<T>)
+			{
+				return { _pimpl->applyCopyItems(std::move(params), std::move(inputArg), std::move(destinationArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyCopyItems<T>)
+			{
+				return { _pimpl->applyCopyItems(std::move(inputArg), std::move(destinationArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyCopyItems is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		{
+			if constexpr (methods::MutationHas::applyMoveItemsWithParams<T>)
+			{
+				return { _pimpl->applyMoveItems(std::move(params), std::move(inputArg), std::move(destinationArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyMoveItems<T>)
+			{
+				return { _pimpl->applyMoveItems(std::move(inputArg), std::move(destinationArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyMoveItems is not implemented)ex");
+			}
+		}
+
+		service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const final
+		{
+			if constexpr (methods::MutationHas::applyDeleteItemsWithParams<T>)
+			{
+				return { _pimpl->applyDeleteItems(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) };
+			}
+			else if constexpr (methods::MutationHas::applyDeleteItems<T>)
+			{
+				return { _pimpl->applyDeleteItems(std::move(inputArg), std::move(hardDeleteArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Mutation::applyDeleteItems is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::MutationHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::MutationHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Mutation(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
-	virtual service::FieldResult<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
-	virtual service::FieldResult<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
-	virtual service::FieldResult<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
-	virtual service::FieldResult<response::BooleanType> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, response::BooleanType&& hardDeleteArg) const = 0;
-	virtual service::FieldResult<response::BooleanType> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& readArg) const = 0;
-	virtual service::FieldResult<response::BooleanType> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-	virtual service::FieldResult<response::BooleanType> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-	virtual service::FieldResult<response::BooleanType> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, response::BooleanType&& hardDeleteArg) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveCreateItem(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveCreateSubFolder(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveModifyItem(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveModifyFolder(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveRemoveFolder(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveMarkAsRead(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveCopyItems(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveMoveItems(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveDeleteItems(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	Mutation(std::shared_ptr<T> pimpl) noexcept
+		: Mutation { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

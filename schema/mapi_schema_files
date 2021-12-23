@@ -1,4 +1,10 @@
 MAPISchema.cpp
+AttachmentObject.cpp
+NamedPropIdObject.cpp
+PropIdObject.cpp
+PropValueObject.cpp
+ItemChangeObject.cpp
+FolderChangeObject.cpp
 QueryObject.cpp
 MutationObject.cpp
 SubscriptionObject.cpp

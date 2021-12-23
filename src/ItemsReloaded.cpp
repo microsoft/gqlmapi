@@ -4,6 +4,8 @@
 #include "Types.h"
 #include "Unicode.h"
 
+#include "ItemObject.h"
+
 namespace graphql::mapi {
 
 ItemsReloaded::ItemsReloaded(const std::vector<std::shared_ptr<Item>>& reloaded)
@@ -11,8 +13,7 @@ ItemsReloaded::ItemsReloaded(const std::vector<std::shared_ptr<Item>>& reloaded)
 {
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Item>>> ItemsReloaded::getReloaded(
-	service::FieldParams&& params) const
+std::vector<std::shared_ptr<object::Item>> ItemsReloaded::getReloaded() const
 {
 	std::vector<std::shared_ptr<object::Item>> result(m_reloaded.size());
 
@@ -20,7 +21,7 @@ service::FieldResult<std::vector<std::shared_ptr<object::Item>>> ItemsReloaded::
 		m_reloaded.cend(),
 		result.begin(),
 		[](const std::shared_ptr<Item>& item) noexcept {
-			return std::static_pointer_cast<object::Item>(item);
+			return std::make_shared<object::Item>(item);
 		});
 
 	return result;

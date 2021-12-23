@@ -11,22 +11,143 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::PropertyHas {
+
+template <class TImpl>
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::shared_ptr<PropId>> { impl.getId(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getId = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::shared_ptr<PropId>> { impl.getId() } };
+};
+
+template <class TImpl>
+concept getValueWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::shared_ptr<PropValue>> { impl.getValue(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getValue = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::shared_ptr<PropValue>> { impl.getValue() } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::PropertyHas
 
 class Property
 	: public service::Object
 {
-protected:
-	explicit Property();
+private:
+	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveValue(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::PropertyHas::getIdWithParams<T>)
+			{
+				return { _pimpl->getId(std::move(params)) };
+			}
+			else if constexpr (methods::PropertyHas::getId<T>)
+			{
+				return { _pimpl->getId() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Property::getId is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::PropertyHas::getValueWithParams<T>)
+			{
+				return { _pimpl->getValue(std::move(params)) };
+			}
+			else if constexpr (methods::PropertyHas::getValue<T>)
+			{
+				return { _pimpl->getValue() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Property::getValue is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::PropertyHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::PropertyHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Property(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<std::shared_ptr<service::Object>> getId(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::shared_ptr<service::Object>> getValue(service::FieldParams&& params) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveId(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveValue(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	Property(std::shared_ptr<T> pimpl) noexcept
+		: Property { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

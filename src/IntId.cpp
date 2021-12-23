@@ -6,13 +6,13 @@
 namespace graphql::mapi {
 
 IntId::IntId(ULONG id)
-	: m_id{ id }
+	: m_id { id }
 {
 }
 
-service::FieldResult<response::IntType> IntId::getId(service::FieldParams&& params) const
+int IntId::getId() const
 {
-	return { static_cast<response::IntType>(m_id) };
+	return static_cast<int>(m_id);
 }
 
 } // namespace graphql::mapi

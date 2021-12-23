@@ -11,22 +11,159 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace implements {
+
+template <class I>
+concept ItemAddedIs = std::is_same_v<I, ItemChange>;
+
+} // namespace implements
+
+namespace methods::ItemAddedHas {
+
+template <class TImpl>
+concept getIndexWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableScalar<int> { impl.getIndex(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getIndex = requires (TImpl impl) 
+{
+	{ service::AwaitableScalar<int> { impl.getIndex() } };
+};
+
+template <class TImpl>
+concept getAddedWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.getAdded(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getAdded = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.getAdded() } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::ItemAddedHas
 
 class ItemAdded
 	: public service::Object
 {
-protected:
-	explicit ItemAdded();
+private:
+	service::AwaitableResolver resolveIndex(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolveAdded(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableScalar<int> getIndex(service::FieldParams&& params) const = 0;
+		virtual service::AwaitableObject<std::shared_ptr<Item>> getAdded(service::FieldParams&& params) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableScalar<int> getIndex(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ItemAddedHas::getIndexWithParams<T>)
+			{
+				return { _pimpl->getIndex(std::move(params)) };
+			}
+			else if constexpr (methods::ItemAddedHas::getIndex<T>)
+			{
+				return { _pimpl->getIndex() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(ItemAdded::getIndex is not implemented)ex");
+			}
+		}
+
+		service::AwaitableObject<std::shared_ptr<Item>> getAdded(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::ItemAddedHas::getAddedWithParams<T>)
+			{
+				return { _pimpl->getAdded(std::move(params)) };
+			}
+			else if constexpr (methods::ItemAddedHas::getAdded<T>)
+			{
+				return { _pimpl->getAdded() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(ItemAdded::getAdded is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::ItemAddedHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::ItemAddedHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	ItemAdded(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	// Unions which include this type
+	friend ItemChange;
+
+	template <class I>
+	static constexpr bool implements() noexcept
+	{
+		return implements::ItemAddedIs<I>;
+	}
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<response::IntType> getIndex(service::FieldParams&& params) const = 0;
-	virtual service::FieldResult<std::shared_ptr<Item>> getAdded(service::FieldParams&& params) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveIndex(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolveAdded(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	ItemAdded(std::shared_ptr<T> pimpl) noexcept
+		: ItemAdded { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

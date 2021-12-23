@@ -1,8 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "Types.h"
 #include "Guid.h"
+#include "Types.h"
+
+#include "FolderObject.h"
+#include "ItemObject.h"
+#include "StoreObject.h"
 
 namespace graphql::mapi {
 
@@ -18,7 +22,7 @@ static_assert(GetColumnPropType(Folder::DefaultColumn::Name) == PT_UNICODE, "typ
 static_assert(GetColumnPropType(Folder::DefaultColumn::Total) == PT_LONG, "type mismatch");
 static_assert(GetColumnPropType(Folder::DefaultColumn::Unread) == PT_LONG, "type mismatch");
 
-Folder::Folder(const std::shared_ptr<const Store>& store, IMAPIFolder* pFolder, size_t columnCount,
+Folder::Folder(const std::shared_ptr<Store>& store, IMAPIFolder* pFolder, size_t columnCount,
 	mapi_ptr<SPropValue>&& columns)
 	: m_store { store }
 	, m_columnCount { columnCount }
@@ -78,28 +82,28 @@ const response::IdType& Folder::id() const
 	return m_id;
 }
 
-const response::StringType& Folder::name() const
+const std::string& Folder::name() const
 {
 	return m_name;
 }
 
-response::IntType Folder::count() const
+int Folder::count() const
 {
 	return m_count;
 }
 
-response::IntType Folder::unread() const
+int Folder::unread() const
 {
 	return m_unread;
 }
 
-const CComPtr<IMAPIFolder>& Folder::folder() const
+const CComPtr<IMAPIFolder>& Folder::folder()
 {
 	OpenFolder();
 	return m_folder;
 }
 
-const std::vector<std::shared_ptr<Folder>>& Folder::subFolders() const
+const std::vector<std::shared_ptr<Folder>>& Folder::subFolders()
 {
 	LoadSubFolders({});
 	return *m_subFolders;
@@ -110,7 +114,7 @@ std::shared_ptr<Folder> Folder::parentFolder() const
 	return m_parentId == m_id ? nullptr : m_store.lock()->OpenFolder(m_parentId);
 }
 
-std::shared_ptr<Folder> Folder::lookupSubFolder(const response::IdType& id) const
+std::shared_ptr<Folder> Folder::lookupSubFolder(const response::IdType& id)
 {
 	LoadSubFolders({});
 
@@ -124,13 +128,13 @@ std::shared_ptr<Folder> Folder::lookupSubFolder(const response::IdType& id) cons
 	return m_subFolders->at(itr->second);
 }
 
-const std::vector<std::shared_ptr<Item>>& Folder::items() const
+const std::vector<std::shared_ptr<Item>>& Folder::items()
 {
 	LoadItems({});
 	return *m_items;
 }
 
-std::shared_ptr<Item> Folder::lookupItem(const response::IdType& id) const
+std::shared_ptr<Item> Folder::lookupItem(const response::IdType& id)
 {
 	LoadItems({});
 
@@ -168,7 +172,7 @@ response::IdType Folder::GetIdColumn(DefaultColumn column) const
 	return { idBegin, idEnd };
 }
 
-response::StringType Folder::GetStringColumn(DefaultColumn column) const
+std::string Folder::GetStringColumn(DefaultColumn column) const
 {
 	const auto& stringProp = GetColumnProp(column);
 
@@ -180,7 +184,7 @@ response::StringType Folder::GetStringColumn(DefaultColumn column) const
 	return convert::utf8::to_utf8(stringProp.Value.lpszW);
 }
 
-response::IntType Folder::GetIntColumn(DefaultColumn column) const
+int Folder::GetIntColumn(DefaultColumn column) const
 {
 	const auto& intProp = GetColumnProp(column);
 
@@ -189,10 +193,10 @@ response::IntType Folder::GetIntColumn(DefaultColumn column) const
 		return 0;
 	}
 
-	return static_cast<response::IntType>(intProp.Value.l);
+	return static_cast<int>(intProp.Value.l);
 }
 
-void Folder::OpenFolder() const
+void Folder::OpenFolder()
 {
 	if (m_folder)
 	{
@@ -211,7 +215,7 @@ void Folder::OpenFolder() const
 	CFRt(objType == MAPI_FOLDER);
 }
 
-void Folder::LoadSubFolders(response::Value&& fieldDirectives) const
+void Folder::LoadSubFolders(service::Directives&& fieldDirectives)
 {
 	if (m_subFolderDirectives != fieldDirectives)
 	{
@@ -275,7 +279,7 @@ void Folder::LoadSubFolders(response::Value&& fieldDirectives) const
 
 	if (!m_subFolderSink)
 	{
-		auto spThis = std::static_pointer_cast<const Folder>(shared_from_this());
+		auto spThis = shared_from_this();
 		CComPtr<AdviseSinkProxy<IMAPITable>> sinkProxy;
 		ULONG_PTR connectionId = 0;
 
@@ -296,7 +300,7 @@ void Folder::LoadSubFolders(response::Value&& fieldDirectives) const
 	}
 }
 
-void Folder::LoadItems(response::Value&& fieldDirectives) const
+void Folder::LoadItems(service::Directives&& fieldDirectives)
 {
 	if (m_itemDirectives != fieldDirectives)
 	{
@@ -359,7 +363,7 @@ void Folder::LoadItems(response::Value&& fieldDirectives) const
 
 	if (!m_itemSink)
 	{
-		auto spThis = std::static_pointer_cast<const Folder>(shared_from_this());
+		auto spThis = shared_from_this();
 		CComPtr<AdviseSinkProxy<IMAPITable>> sinkProxy;
 		ULONG_PTR connectionId = 0;
 
@@ -380,46 +384,42 @@ void Folder::LoadItems(response::Value&& fieldDirectives) const
 	}
 }
 
-service::FieldResult<response::IdType> Folder::getId(service::FieldParams&& params) const
+const response::IdType& Folder::getId() const
 {
-	return { m_id };
+	return m_id;
 }
 
-service::FieldResult<std::shared_ptr<object::Folder>>
-Folder::getParentFolder(service::FieldParams&& params) const
+std::shared_ptr<object::Folder> Folder::getParentFolder() const
 {
-	return parentFolder();
+	return std::make_shared<object::Folder>(parentFolder());
 }
 
-service::FieldResult<std::shared_ptr<object::Store>>
-Folder::getStore(service::FieldParams&& params) const
+std::shared_ptr<object::Store> Folder::getStore() const
 {
-	return std::static_pointer_cast<object::Store>(std::const_pointer_cast<Store>(m_store.lock()));
+	return std::make_shared<object::Store>(m_store.lock());
 }
 
-service::FieldResult<response::StringType> Folder::getName(service::FieldParams&& params) const
+const std::string& Folder::getName() const
 {
-	return { m_name };
+	return m_name;
 }
 
-service::FieldResult<response::IntType> Folder::getCount(service::FieldParams&& params) const
+int Folder::getCount() const
 {
-	return { m_count };
+	return m_count;
 }
 
-service::FieldResult<response::IntType> Folder::getUnread(service::FieldParams&& params) const
+int Folder::getUnread() const
 {
-	return { m_unread };
+	return m_unread;
 }
 
-service::FieldResult<std::optional<SpecialFolder>>
-Folder::getSpecialFolder(service::FieldParams&& params) const
+std::optional<SpecialFolder> Folder::getSpecialFolder() const
 {
-	return { m_specialFolder };
+	return m_specialFolder;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Property>>>
-Folder::getColumns(service::FieldParams&& params) const
+std::vector<std::shared_ptr<object::Property>> Folder::getColumns() const
 {
 	auto store = m_store.lock();
 	const auto offset = static_cast<size_t>(DefaultColumn::Count);
@@ -428,8 +428,8 @@ Folder::getColumns(service::FieldParams&& params) const
 	return { store->GetColumns(m_columnCount - offset, m_columns.get() + offset) };
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Folder::getSubFolders(
-	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const
+std::vector<std::shared_ptr<object::Folder>> Folder::getSubFolders(
+	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg)
 {
 	std::vector<std::shared_ptr<object::Folder>> result {};
 
@@ -443,7 +443,7 @@ service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Folder::getSu
 			idsArg->cend(),
 			result.begin(),
 			[this](const response::IdType& id) noexcept {
-				return std::static_pointer_cast<object::Folder>(lookupSubFolder(id));
+				return std::make_shared<object::Folder>(lookupSubFolder(id));
 			});
 	}
 	else
@@ -454,22 +454,22 @@ service::FieldResult<std::vector<std::shared_ptr<object::Folder>>> Folder::getSu
 			m_subFolders->cend(),
 			result.begin(),
 			[this](const std::shared_ptr<Folder>& folder) noexcept {
-				return std::static_pointer_cast<object::Folder>(folder);
+				return std::make_shared<object::Folder>(folder);
 			});
 	}
 
 	return result;
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Conversation>>> Folder::getConversations(
-	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const
+std::vector<std::shared_ptr<object::Conversation>> Folder::getConversations(
+	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg)
 {
 	// NYI
-	return std::vector<std::shared_ptr<object::Conversation>> {};
+	return {};
 }
 
-service::FieldResult<std::vector<std::shared_ptr<object::Item>>> Folder::getItems(
-	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const
+std::vector<std::shared_ptr<object::Item>> Folder::getItems(
+	service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg)
 {
 	std::vector<std::shared_ptr<object::Item>> result {};
 
@@ -483,7 +483,7 @@ service::FieldResult<std::vector<std::shared_ptr<object::Item>>> Folder::getItem
 			idsArg->cend(),
 			result.begin(),
 			[this](const response::IdType& id) noexcept {
-				return std::static_pointer_cast<object::Item>(lookupItem(id));
+				return std::make_shared<object::Item>(lookupItem(id));
 			});
 	}
 	else
@@ -494,7 +494,7 @@ service::FieldResult<std::vector<std::shared_ptr<object::Item>>> Folder::getItem
 			m_items->cend(),
 			result.begin(),
 			[this](const std::shared_ptr<Item>& item) noexcept {
-				return std::static_pointer_cast<object::Item>(item);
+				return std::make_shared<object::Item>(item);
 			});
 	}
 

@@ -11,24 +11,117 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace methods::QueryHas {
+
+template <class TImpl>
+concept getStoresWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Store>>> { impl.getStores(std::move(params), std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept getStores = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Store>>> { impl.getStores(std::move(idsArg)) } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::QueryHas
 
 class Query
 	: public service::Object
 {
-protected:
-	explicit Query();
-
-public:
-	virtual service::FieldResult<std::vector<std::shared_ptr<Store>>> getStores(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-
 private:
-	std::future<service::ResolverResult> resolveStores(service::ResolverParams&& params);
+	service::AwaitableResolver resolveStores(service::ResolverParams&& params) const;
 
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolve_schema(service::ResolverParams&& params);
-	std::future<service::ResolverResult> resolve_type(service::ResolverParams&& params);
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolve_schema(service::ResolverParams&& params) const;
+	service::AwaitableResolver resolve_type(service::ResolverParams&& params) const;
 
 	std::shared_ptr<schema::Schema> _schema;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Store>>> getStores(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Store>>> getStores(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		{
+			if constexpr (methods::QueryHas::getStoresWithParams<T>)
+			{
+				return { _pimpl->getStores(std::move(params), std::move(idsArg)) };
+			}
+			else if constexpr (methods::QueryHas::getStores<T>)
+			{
+				return { _pimpl->getStores(std::move(idsArg)) };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(Query::getStores is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::QueryHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::QueryHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	Query(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
+
+public:
+	template <class T>
+	Query(std::shared_ptr<T> pimpl) noexcept
+		: Query { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

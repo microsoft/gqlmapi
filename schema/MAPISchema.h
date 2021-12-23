@@ -10,9 +10,9 @@
 
 #include "graphqlservice/internal/Schema.h"
 
-// Check if the library version is compatible with schemagen 3.6.0
-static_assert(graphql::internal::MajorVersion == 3, "regenerate with schemagen: major version mismatch");
-static_assert(graphql::internal::MinorVersion == 6, "regenerate with schemagen: minor version mismatch");
+// Check if the library version is compatible with schemagen 4.0.0
+static_assert(graphql::internal::MajorVersion == 4, "regenerate with schemagen: major version mismatch");
+static_assert(graphql::internal::MinorVersion == 0, "regenerate with schemagen: minor version mismatch");
 
 #include <memory>
 #include <string>
@@ -48,95 +48,102 @@ enum class PropType
 
 struct ObjectId
 {
-	response::IdType storeId;
-	response::IdType objectId;
+	response::IdType storeId {};
+	response::IdType objectId {};
 };
 
 struct NamedPropInput
 {
-	response::Value propset;
-	std::optional<response::IntType> id;
-	std::optional<response::StringType> name;
+	response::Value propset {};
+	std::optional<int> id {};
+	std::optional<std::string> name {};
 };
 
 struct PropValueInput
 {
-	std::optional<response::IntType> integer;
-	std::optional<response::BooleanType> boolean;
-	std::optional<response::StringType> string;
-	std::optional<response::Value> guid;
-	std::optional<response::Value> time;
-	std::optional<response::IdType> bin;
-	std::optional<response::Value> stream;
+	std::optional<int> integer {};
+	std::optional<bool> boolean {};
+	std::optional<std::string> string {};
+	std::optional<response::Value> guid {};
+	std::optional<response::Value> time {};
+	std::optional<response::IdType> bin {};
+	std::optional<response::Value> stream {};
 };
 
 struct MultipleItemsInput
 {
-	ObjectId folderId;
-	std::vector<response::IdType> itemIds;
+	ObjectId folderId {};
+	std::vector<response::IdType> itemIds {};
 };
 
 struct PropIdInput
 {
-	std::optional<response::IntType> id;
-	std::optional<NamedPropInput> named;
+	std::optional<int> id {};
+	std::optional<NamedPropInput> named {};
 };
 
 struct PropertyInput
 {
-	PropIdInput id;
-	PropValueInput value;
+	PropIdInput id {};
+	PropValueInput value {};
 };
 
 struct Order
 {
-	response::BooleanType descending;
-	PropIdInput property;
-	PropType type;
+	bool descending {};
+	PropIdInput property {};
+	PropType type {};
 };
 
 struct Column
 {
-	PropIdInput property;
-	PropType type;
+	PropIdInput property {};
+	PropType type {};
 };
 
 struct CreateItemInput
 {
-	ObjectId folderId;
-	response::StringType subject;
-	std::optional<response::IdType> conversationId;
-	response::BooleanType read;
-	std::optional<response::Value> received;
-	std::optional<response::Value> modified;
-	std::optional<std::vector<PropertyInput>> properties;
+	ObjectId folderId {};
+	std::string subject {};
+	std::optional<response::IdType> conversationId {};
+	bool read {};
+	std::optional<response::Value> received {};
+	std::optional<response::Value> modified {};
+	std::optional<std::vector<PropertyInput>> properties {};
 };
 
 struct CreateSubFolderInput
 {
-	ObjectId folderId;
-	response::StringType name;
-	std::optional<std::vector<PropertyInput>> properties;
+	ObjectId folderId {};
+	std::string name {};
+	std::optional<std::vector<PropertyInput>> properties {};
 };
 
 struct ModifyItemInput
 {
-	ObjectId id;
-	std::optional<response::StringType> subject;
-	std::optional<response::BooleanType> read;
-	std::optional<std::vector<PropertyInput>> properties;
-	std::optional<std::vector<PropIdInput>> deleted;
+	ObjectId id {};
+	std::optional<std::string> subject {};
+	std::optional<bool> read {};
+	std::optional<std::vector<PropertyInput>> properties {};
+	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
 struct ModifyFolderInput
 {
-	ObjectId folderId;
-	std::optional<response::StringType> name;
-	std::optional<std::vector<PropertyInput>> properties;
-	std::optional<std::vector<PropIdInput>> deleted;
+	ObjectId folderId {};
+	std::optional<std::string> name {};
+	std::optional<std::vector<PropertyInput>> properties {};
+	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
 namespace object {
+
+class Attachment;
+class NamedPropId;
+class PropId;
+class PropValue;
+class ItemChange;
+class FolderChange;
 
 class Query;
 class Mutation;
@@ -174,39 +181,52 @@ class Operations
 public:
 	explicit Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation, std::shared_ptr<object::Subscription> subscription);
 
+	template <class TQuery, class TMutation, class TSubscription>
+	explicit Operations(std::shared_ptr<TQuery> query, std::shared_ptr<TMutation> mutation, std::shared_ptr<TSubscription> subscription)
+		: Operations { std::make_shared<object::Query>(std::move(query)), std::make_shared<object::Mutation>(std::move(mutation)), std::make_shared<object::Subscription>(std::move(subscription)) }
+	{
+	}
+
 private:
 	std::shared_ptr<object::Query> _query;
 	std::shared_ptr<object::Mutation> _mutation;
 	std::shared_ptr<object::Subscription> _subscription;
 };
 
-void AddQueryDetails(std::shared_ptr<schema::ObjectType> typeQuery, const std::shared_ptr<schema::Schema>& schema);
-void AddMutationDetails(std::shared_ptr<schema::ObjectType> typeMutation, const std::shared_ptr<schema::Schema>& schema);
-void AddSubscriptionDetails(std::shared_ptr<schema::ObjectType> typeSubscription, const std::shared_ptr<schema::Schema>& schema);
-void AddStoreDetails(std::shared_ptr<schema::ObjectType> typeStore, const std::shared_ptr<schema::Schema>& schema);
-void AddFolderDetails(std::shared_ptr<schema::ObjectType> typeFolder, const std::shared_ptr<schema::Schema>& schema);
-void AddItemDetails(std::shared_ptr<schema::ObjectType> typeItem, const std::shared_ptr<schema::Schema>& schema);
-void AddFileAttachmentDetails(std::shared_ptr<schema::ObjectType> typeFileAttachment, const std::shared_ptr<schema::Schema>& schema);
-void AddConversationDetails(std::shared_ptr<schema::ObjectType> typeConversation, const std::shared_ptr<schema::Schema>& schema);
-void AddIntIdDetails(std::shared_ptr<schema::ObjectType> typeIntId, const std::shared_ptr<schema::Schema>& schema);
-void AddStringIdDetails(std::shared_ptr<schema::ObjectType> typeStringId, const std::shared_ptr<schema::Schema>& schema);
-void AddNamedIdDetails(std::shared_ptr<schema::ObjectType> typeNamedId, const std::shared_ptr<schema::Schema>& schema);
-void AddIntValueDetails(std::shared_ptr<schema::ObjectType> typeIntValue, const std::shared_ptr<schema::Schema>& schema);
-void AddBoolValueDetails(std::shared_ptr<schema::ObjectType> typeBoolValue, const std::shared_ptr<schema::Schema>& schema);
-void AddStringValueDetails(std::shared_ptr<schema::ObjectType> typeStringValue, const std::shared_ptr<schema::Schema>& schema);
-void AddGuidValueDetails(std::shared_ptr<schema::ObjectType> typeGuidValue, const std::shared_ptr<schema::Schema>& schema);
-void AddDateTimeValueDetails(std::shared_ptr<schema::ObjectType> typeDateTimeValue, const std::shared_ptr<schema::Schema>& schema);
-void AddBinaryValueDetails(std::shared_ptr<schema::ObjectType> typeBinaryValue, const std::shared_ptr<schema::Schema>& schema);
-void AddStreamValueDetails(std::shared_ptr<schema::ObjectType> typeStreamValue, const std::shared_ptr<schema::Schema>& schema);
-void AddPropertyDetails(std::shared_ptr<schema::ObjectType> typeProperty, const std::shared_ptr<schema::Schema>& schema);
-void AddItemAddedDetails(std::shared_ptr<schema::ObjectType> typeItemAdded, const std::shared_ptr<schema::Schema>& schema);
-void AddItemUpdatedDetails(std::shared_ptr<schema::ObjectType> typeItemUpdated, const std::shared_ptr<schema::Schema>& schema);
-void AddItemRemovedDetails(std::shared_ptr<schema::ObjectType> typeItemRemoved, const std::shared_ptr<schema::Schema>& schema);
-void AddItemsReloadedDetails(std::shared_ptr<schema::ObjectType> typeItemsReloaded, const std::shared_ptr<schema::Schema>& schema);
-void AddFolderAddedDetails(std::shared_ptr<schema::ObjectType> typeFolderAdded, const std::shared_ptr<schema::Schema>& schema);
-void AddFolderUpdatedDetails(std::shared_ptr<schema::ObjectType> typeFolderUpdated, const std::shared_ptr<schema::Schema>& schema);
-void AddFolderRemovedDetails(std::shared_ptr<schema::ObjectType> typeFolderRemoved, const std::shared_ptr<schema::Schema>& schema);
-void AddFoldersReloadedDetails(std::shared_ptr<schema::ObjectType> typeFoldersReloaded, const std::shared_ptr<schema::Schema>& schema);
+void AddAttachmentDetails(const std::shared_ptr<schema::UnionType>& typeAttachment, const std::shared_ptr<schema::Schema>& schema);
+void AddNamedPropIdDetails(const std::shared_ptr<schema::UnionType>& typeNamedPropId, const std::shared_ptr<schema::Schema>& schema);
+void AddPropIdDetails(const std::shared_ptr<schema::UnionType>& typePropId, const std::shared_ptr<schema::Schema>& schema);
+void AddPropValueDetails(const std::shared_ptr<schema::UnionType>& typePropValue, const std::shared_ptr<schema::Schema>& schema);
+void AddItemChangeDetails(const std::shared_ptr<schema::UnionType>& typeItemChange, const std::shared_ptr<schema::Schema>& schema);
+void AddFolderChangeDetails(const std::shared_ptr<schema::UnionType>& typeFolderChange, const std::shared_ptr<schema::Schema>& schema);
+
+void AddQueryDetails(const std::shared_ptr<schema::ObjectType>& typeQuery, const std::shared_ptr<schema::Schema>& schema);
+void AddMutationDetails(const std::shared_ptr<schema::ObjectType>& typeMutation, const std::shared_ptr<schema::Schema>& schema);
+void AddSubscriptionDetails(const std::shared_ptr<schema::ObjectType>& typeSubscription, const std::shared_ptr<schema::Schema>& schema);
+void AddStoreDetails(const std::shared_ptr<schema::ObjectType>& typeStore, const std::shared_ptr<schema::Schema>& schema);
+void AddFolderDetails(const std::shared_ptr<schema::ObjectType>& typeFolder, const std::shared_ptr<schema::Schema>& schema);
+void AddItemDetails(const std::shared_ptr<schema::ObjectType>& typeItem, const std::shared_ptr<schema::Schema>& schema);
+void AddFileAttachmentDetails(const std::shared_ptr<schema::ObjectType>& typeFileAttachment, const std::shared_ptr<schema::Schema>& schema);
+void AddConversationDetails(const std::shared_ptr<schema::ObjectType>& typeConversation, const std::shared_ptr<schema::Schema>& schema);
+void AddIntIdDetails(const std::shared_ptr<schema::ObjectType>& typeIntId, const std::shared_ptr<schema::Schema>& schema);
+void AddStringIdDetails(const std::shared_ptr<schema::ObjectType>& typeStringId, const std::shared_ptr<schema::Schema>& schema);
+void AddNamedIdDetails(const std::shared_ptr<schema::ObjectType>& typeNamedId, const std::shared_ptr<schema::Schema>& schema);
+void AddIntValueDetails(const std::shared_ptr<schema::ObjectType>& typeIntValue, const std::shared_ptr<schema::Schema>& schema);
+void AddBoolValueDetails(const std::shared_ptr<schema::ObjectType>& typeBoolValue, const std::shared_ptr<schema::Schema>& schema);
+void AddStringValueDetails(const std::shared_ptr<schema::ObjectType>& typeStringValue, const std::shared_ptr<schema::Schema>& schema);
+void AddGuidValueDetails(const std::shared_ptr<schema::ObjectType>& typeGuidValue, const std::shared_ptr<schema::Schema>& schema);
+void AddDateTimeValueDetails(const std::shared_ptr<schema::ObjectType>& typeDateTimeValue, const std::shared_ptr<schema::Schema>& schema);
+void AddBinaryValueDetails(const std::shared_ptr<schema::ObjectType>& typeBinaryValue, const std::shared_ptr<schema::Schema>& schema);
+void AddStreamValueDetails(const std::shared_ptr<schema::ObjectType>& typeStreamValue, const std::shared_ptr<schema::Schema>& schema);
+void AddPropertyDetails(const std::shared_ptr<schema::ObjectType>& typeProperty, const std::shared_ptr<schema::Schema>& schema);
+void AddItemAddedDetails(const std::shared_ptr<schema::ObjectType>& typeItemAdded, const std::shared_ptr<schema::Schema>& schema);
+void AddItemUpdatedDetails(const std::shared_ptr<schema::ObjectType>& typeItemUpdated, const std::shared_ptr<schema::Schema>& schema);
+void AddItemRemovedDetails(const std::shared_ptr<schema::ObjectType>& typeItemRemoved, const std::shared_ptr<schema::Schema>& schema);
+void AddItemsReloadedDetails(const std::shared_ptr<schema::ObjectType>& typeItemsReloaded, const std::shared_ptr<schema::Schema>& schema);
+void AddFolderAddedDetails(const std::shared_ptr<schema::ObjectType>& typeFolderAdded, const std::shared_ptr<schema::Schema>& schema);
+void AddFolderUpdatedDetails(const std::shared_ptr<schema::ObjectType>& typeFolderUpdated, const std::shared_ptr<schema::Schema>& schema);
+void AddFolderRemovedDetails(const std::shared_ptr<schema::ObjectType>& typeFolderRemoved, const std::shared_ptr<schema::Schema>& schema);
+void AddFoldersReloadedDetails(const std::shared_ptr<schema::ObjectType>& typeFoldersReloaded, const std::shared_ptr<schema::Schema>& schema);
 
 std::shared_ptr<schema::Schema> GetSchema();
 

@@ -11,20 +11,129 @@
 #include "MAPISchema.h"
 
 namespace graphql::mapi::object {
+namespace implements {
+
+template <class I>
+concept FoldersReloadedIs = std::is_same_v<I, FolderChange>;
+
+} // namespace implements
+
+namespace methods::FoldersReloadedHas {
+
+template <class TImpl>
+concept getReloadedWithParams = requires (TImpl impl, service::FieldParams params) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getReloaded(std::move(params)) } };
+};
+
+template <class TImpl>
+concept getReloaded = requires (TImpl impl) 
+{
+	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getReloaded() } };
+};
+
+template <class TImpl>
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.beginSelectionSet(params) };
+};
+
+template <class TImpl>
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+{
+	{ impl.endSelectionSet(params) };
+};
+
+} // namespace methods::FoldersReloadedHas
 
 class FoldersReloaded
 	: public service::Object
 {
-protected:
-	explicit FoldersReloaded();
+private:
+	service::AwaitableResolver resolveReloaded(service::ResolverParams&& params) const;
+
+	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+
+	struct Concept
+	{
+		virtual ~Concept() = default;
+
+		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
+		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
+
+		virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getReloaded(service::FieldParams&& params) const = 0;
+	};
+
+	template <class T>
+	struct Model
+		: Concept
+	{
+		Model(std::shared_ptr<T>&& pimpl) noexcept
+			: _pimpl { std::move(pimpl) }
+		{
+		}
+
+		service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getReloaded(service::FieldParams&& params) const final
+		{
+			if constexpr (methods::FoldersReloadedHas::getReloadedWithParams<T>)
+			{
+				return { _pimpl->getReloaded(std::move(params)) };
+			}
+			else if constexpr (methods::FoldersReloadedHas::getReloaded<T>)
+			{
+				return { _pimpl->getReloaded() };
+			}
+			else
+			{
+				throw std::runtime_error(R"ex(FoldersReloaded::getReloaded is not implemented)ex");
+			}
+		}
+
+		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FoldersReloadedHas::beginSelectionSet<T>)
+			{
+				_pimpl->beginSelectionSet(params);
+			}
+		}
+
+		void endSelectionSet(const service::SelectionSetParams& params) const final
+		{
+			if constexpr (methods::FoldersReloadedHas::endSelectionSet<T>)
+			{
+				_pimpl->endSelectionSet(params);
+			}
+		}
+
+	private:
+		const std::shared_ptr<T> _pimpl;
+	};
+
+	FoldersReloaded(std::unique_ptr<Concept>&& pimpl) noexcept;
+
+	// Unions which include this type
+	friend FolderChange;
+
+	template <class I>
+	static constexpr bool implements() noexcept
+	{
+		return implements::FoldersReloadedIs<I>;
+	}
+
+	service::TypeNames getTypeNames() const noexcept;
+	service::ResolverMap getResolvers() const noexcept;
+
+	void beginSelectionSet(const service::SelectionSetParams& params) const final;
+	void endSelectionSet(const service::SelectionSetParams& params) const final;
+
+	const std::unique_ptr<Concept> _pimpl;
 
 public:
-	virtual service::FieldResult<std::vector<std::shared_ptr<Folder>>> getReloaded(service::FieldParams&& params) const = 0;
-
-private:
-	std::future<service::ResolverResult> resolveReloaded(service::ResolverParams&& params);
-
-	std::future<service::ResolverResult> resolve_typename(service::ResolverParams&& params);
+	template <class T>
+	FoldersReloaded(std::shared_ptr<T> pimpl) noexcept
+		: FoldersReloaded { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+	{
+	}
 };
 
 } // namespace graphql::mapi::object

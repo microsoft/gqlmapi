@@ -4,23 +4,24 @@
 #include "Types.h"
 #include "Unicode.h"
 
+#include "FolderObject.h"
+
 namespace graphql::mapi {
 
-FolderAdded::FolderAdded(response::IntType index, const std::shared_ptr<Folder>& added)
+FolderAdded::FolderAdded(int index, const std::shared_ptr<Folder>& added)
 	: m_index { index }
 	, m_added { added }
 {
 }
 
-service::FieldResult<response::IntType> FolderAdded::getIndex(service::FieldParams&& params) const
+int FolderAdded::getIndex() const
 {
 	return m_index;
 }
 
-service::FieldResult<std::shared_ptr<object::Folder>> FolderAdded::getAdded(
-	service::FieldParams&& params) const
+std::shared_ptr<object::Folder> FolderAdded::getAdded() const
 {
-	return std::static_pointer_cast<object::Folder>(m_added);
+	return std::make_shared<object::Folder>(m_added);
 }
 
 } // namespace graphql::mapi
