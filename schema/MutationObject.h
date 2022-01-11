@@ -14,121 +14,121 @@ namespace graphql::mapi::object {
 namespace methods::MutationHas {
 
 template <class TImpl>
-concept applyCreateItemWithParams = requires (TImpl impl, service::FieldParams params, CreateItemInput inputArg) 
+concept applyCreateItemWithParams = requires (TImpl impl, service::FieldParams params, CreateItemInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyCreateItem(std::move(params), std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyCreateItem = requires (TImpl impl, CreateItemInput inputArg) 
+concept applyCreateItem = requires (TImpl impl, CreateItemInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyCreateItem(std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyCreateSubFolderWithParams = requires (TImpl impl, service::FieldParams params, CreateSubFolderInput inputArg) 
+concept applyCreateSubFolderWithParams = requires (TImpl impl, service::FieldParams params, CreateSubFolderInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyCreateSubFolder(std::move(params), std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyCreateSubFolder = requires (TImpl impl, CreateSubFolderInput inputArg) 
+concept applyCreateSubFolder = requires (TImpl impl, CreateSubFolderInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyCreateSubFolder(std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyModifyItemWithParams = requires (TImpl impl, service::FieldParams params, ModifyItemInput inputArg) 
+concept applyModifyItemWithParams = requires (TImpl impl, service::FieldParams params, ModifyItemInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyModifyItem(std::move(params), std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyModifyItem = requires (TImpl impl, ModifyItemInput inputArg) 
+concept applyModifyItem = requires (TImpl impl, ModifyItemInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Item>> { impl.applyModifyItem(std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyModifyFolderWithParams = requires (TImpl impl, service::FieldParams params, ModifyFolderInput inputArg) 
+concept applyModifyFolderWithParams = requires (TImpl impl, service::FieldParams params, ModifyFolderInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyModifyFolder(std::move(params), std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyModifyFolder = requires (TImpl impl, ModifyFolderInput inputArg) 
+concept applyModifyFolder = requires (TImpl impl, ModifyFolderInput inputArg)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.applyModifyFolder(std::move(inputArg)) } };
 };
 
 template <class TImpl>
-concept applyRemoveFolderWithParams = requires (TImpl impl, service::FieldParams params, ObjectId inputArg, bool hardDeleteArg) 
+concept applyRemoveFolderWithParams = requires (TImpl impl, service::FieldParams params, ObjectId inputArg, bool hardDeleteArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyRemoveFolder(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) } };
 };
 
 template <class TImpl>
-concept applyRemoveFolder = requires (TImpl impl, ObjectId inputArg, bool hardDeleteArg) 
+concept applyRemoveFolder = requires (TImpl impl, ObjectId inputArg, bool hardDeleteArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyRemoveFolder(std::move(inputArg), std::move(hardDeleteArg)) } };
 };
 
 template <class TImpl>
-concept applyMarkAsReadWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool readArg) 
+concept applyMarkAsReadWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool readArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyMarkAsRead(std::move(params), std::move(inputArg), std::move(readArg)) } };
 };
 
 template <class TImpl>
-concept applyMarkAsRead = requires (TImpl impl, MultipleItemsInput inputArg, bool readArg) 
+concept applyMarkAsRead = requires (TImpl impl, MultipleItemsInput inputArg, bool readArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyMarkAsRead(std::move(inputArg), std::move(readArg)) } };
 };
 
 template <class TImpl>
-concept applyCopyItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg) 
+concept applyCopyItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyCopyItems(std::move(params), std::move(inputArg), std::move(destinationArg)) } };
 };
 
 template <class TImpl>
-concept applyCopyItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg) 
+concept applyCopyItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyCopyItems(std::move(inputArg), std::move(destinationArg)) } };
 };
 
 template <class TImpl>
-concept applyMoveItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg) 
+concept applyMoveItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, ObjectId destinationArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyMoveItems(std::move(params), std::move(inputArg), std::move(destinationArg)) } };
 };
 
 template <class TImpl>
-concept applyMoveItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg) 
+concept applyMoveItems = requires (TImpl impl, MultipleItemsInput inputArg, ObjectId destinationArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyMoveItems(std::move(inputArg), std::move(destinationArg)) } };
 };
 
 template <class TImpl>
-concept applyDeleteItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool hardDeleteArg) 
+concept applyDeleteItemsWithParams = requires (TImpl impl, service::FieldParams params, MultipleItemsInput inputArg, bool hardDeleteArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyDeleteItems(std::move(params), std::move(inputArg), std::move(hardDeleteArg)) } };
 };
 
 template <class TImpl>
-concept applyDeleteItems = requires (TImpl impl, MultipleItemsInput inputArg, bool hardDeleteArg) 
+concept applyDeleteItems = requires (TImpl impl, MultipleItemsInput inputArg, bool hardDeleteArg)
 {
 	{ service::AwaitableScalar<bool> { impl.applyDeleteItems(std::move(inputArg), std::move(hardDeleteArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

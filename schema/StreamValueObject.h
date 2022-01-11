@@ -21,25 +21,25 @@ concept StreamValueIs = std::is_same_v<I, PropValue>;
 namespace methods::StreamValueHas {
 
 template <class TImpl>
-concept getValueWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getValueWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::Value> { impl.getValue(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getValue = requires (TImpl impl) 
+concept getValue = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::Value> { impl.getValue() } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

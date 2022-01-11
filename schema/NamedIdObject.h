@@ -21,37 +21,37 @@ concept NamedIdIs = std::is_same_v<I, PropId>;
 namespace methods::NamedIdHas {
 
 template <class TImpl>
-concept getPropsetWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getPropsetWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::Value> { impl.getPropset(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getPropset = requires (TImpl impl) 
+concept getPropset = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::Value> { impl.getPropset() } };
 };
 
 template <class TImpl>
-concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::shared_ptr<NamedPropId>> { impl.getId(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getId = requires (TImpl impl) 
+concept getId = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::shared_ptr<NamedPropId>> { impl.getId() } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

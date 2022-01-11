@@ -21,25 +21,25 @@ concept FoldersReloadedIs = std::is_same_v<I, FolderChange>;
 namespace methods::FoldersReloadedHas {
 
 template <class TImpl>
-concept getReloadedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getReloadedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getReloaded(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getReloaded = requires (TImpl impl) 
+concept getReloaded = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getReloaded() } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

@@ -14,85 +14,85 @@ namespace graphql::mapi::object {
 namespace methods::ConversationHas {
 
 template <class TImpl>
-concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getId = requires (TImpl impl) 
+concept getId = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
 };
 
 template <class TImpl>
-concept getSubjectWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getSubjectWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::string> { impl.getSubject(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getSubject = requires (TImpl impl) 
+concept getSubject = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::string> { impl.getSubject() } };
 };
 
 template <class TImpl>
-concept getCountWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getCountWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<int> { impl.getCount(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getCount = requires (TImpl impl) 
+concept getCount = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<int> { impl.getCount() } };
 };
 
 template <class TImpl>
-concept getUnreadWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getUnreadWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<int> { impl.getUnread(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getUnread = requires (TImpl impl) 
+concept getUnread = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<int> { impl.getUnread() } };
 };
 
 template <class TImpl>
-concept getReceivedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getReceivedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getReceived = requires (TImpl impl) 
+concept getReceived = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived() } };
 };
 
 template <class TImpl>
-concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Item>>> { impl.getItems(std::move(params), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getItems = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+concept getItems = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Item>>> { impl.getItems(std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

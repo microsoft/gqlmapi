@@ -50,7 +50,7 @@ add_library(gqlmapi Service.cpp)
 target_link_libraries(gqlmapi
   PRIVATE $<BUILD_INTERFACE:gqlmapiCommon>
   INTERFACE
-    cppgraphqlgen::graphqlintrospection
+    cppgraphqlgen::graphqlservice
     cppgraphqlgen::graphqljson)
 target_include_directories(gqlmapi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../schema>
@@ -67,7 +67,6 @@ if(BUILD_SHARED_LIBS)
       RelWithDebInfo)
 
   install(FILES
-    $<TARGET_FILE:cppgraphqlgen::graphqlintrospection>
     $<TARGET_FILE:cppgraphqlgen::graphqljson>
     $<TARGET_FILE:cppgraphqlgen::graphqlpeg>
     $<TARGET_FILE:cppgraphqlgen::graphqlresponse>

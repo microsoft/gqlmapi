@@ -21,37 +21,37 @@ concept FolderUpdatedIs = std::is_same_v<I, FolderChange>;
 namespace methods::FolderUpdatedHas {
 
 template <class TImpl>
-concept getIndexWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIndexWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<int> { impl.getIndex(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getIndex = requires (TImpl impl) 
+concept getIndex = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<int> { impl.getIndex() } };
 };
 
 template <class TImpl>
-concept getUpdatedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getUpdatedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getUpdated(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getUpdated = requires (TImpl impl) 
+concept getUpdated = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getUpdated() } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

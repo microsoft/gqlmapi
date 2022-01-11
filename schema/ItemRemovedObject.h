@@ -21,37 +21,37 @@ concept ItemRemovedIs = std::is_same_v<I, ItemChange>;
 namespace methods::ItemRemovedHas {
 
 template <class TImpl>
-concept getIndexWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIndexWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<int> { impl.getIndex(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getIndex = requires (TImpl impl) 
+concept getIndex = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<int> { impl.getIndex() } };
 };
 
 template <class TImpl>
-concept getRemovedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getRemovedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getRemoved(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getRemoved = requires (TImpl impl) 
+concept getRemoved = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getRemoved() } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

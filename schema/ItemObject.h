@@ -21,181 +21,181 @@ concept ItemIs = std::is_same_v<I, Attachment>;
 namespace methods::ItemHas {
 
 template <class TImpl>
-concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getId = requires (TImpl impl) 
+concept getId = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
 };
 
 template <class TImpl>
-concept getParentFolderWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getParentFolderWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getParentFolder(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getParentFolder = requires (TImpl impl) 
+concept getParentFolder = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::shared_ptr<Folder>> { impl.getParentFolder() } };
 };
 
 template <class TImpl>
-concept getConversationWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getConversationWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::shared_ptr<Conversation>> { impl.getConversation(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getConversation = requires (TImpl impl) 
+concept getConversation = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::shared_ptr<Conversation>> { impl.getConversation() } };
 };
 
 template <class TImpl>
-concept getSubjectWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getSubjectWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::string> { impl.getSubject(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getSubject = requires (TImpl impl) 
+concept getSubject = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::string> { impl.getSubject() } };
 };
 
 template <class TImpl>
-concept getSenderWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getSenderWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getSender(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getSender = requires (TImpl impl) 
+concept getSender = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getSender() } };
 };
 
 template <class TImpl>
-concept getToWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getToWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getTo(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getTo = requires (TImpl impl) 
+concept getTo = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getTo() } };
 };
 
 template <class TImpl>
-concept getCcWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getCcWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getCc(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getCc = requires (TImpl impl) 
+concept getCc = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getCc() } };
 };
 
 template <class TImpl>
-concept getBodyWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getBodyWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getBody(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getBody = requires (TImpl impl) 
+concept getBody = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getBody() } };
 };
 
 template <class TImpl>
-concept getReadWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getReadWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<bool> { impl.getRead(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getRead = requires (TImpl impl) 
+concept getRead = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<bool> { impl.getRead() } };
 };
 
 template <class TImpl>
-concept getReceivedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getReceivedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getReceived = requires (TImpl impl) 
+concept getReceived = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getReceived() } };
 };
 
 template <class TImpl>
-concept getModifiedWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getModifiedWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getModified(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getModified = requires (TImpl impl) 
+concept getModified = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<response::Value>> { impl.getModified() } };
 };
 
 template <class TImpl>
-concept getPreviewWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getPreviewWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getPreview(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getPreview = requires (TImpl impl) 
+concept getPreview = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::optional<std::string>> { impl.getPreview() } };
 };
 
 template <class TImpl>
-concept getColumnsWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getColumnsWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getColumns = requires (TImpl impl) 
+concept getColumns = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns() } };
 };
 
 template <class TImpl>
-concept getAttachmentsWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+concept getAttachmentsWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> { impl.getAttachments(std::move(params), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getAttachments = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+concept getAttachments = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> { impl.getAttachments(std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

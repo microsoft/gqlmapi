@@ -14,97 +14,97 @@ namespace graphql::mapi::object {
 namespace methods::StoreHas {
 
 template <class TImpl>
-concept getIdWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getIdWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getId = requires (TImpl impl) 
+concept getId = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<response::IdType> { impl.getId() } };
 };
 
 template <class TImpl>
-concept getNameWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getNameWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableScalar<std::string> { impl.getName(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getName = requires (TImpl impl) 
+concept getName = requires (TImpl impl)
 {
 	{ service::AwaitableScalar<std::string> { impl.getName() } };
 };
 
 template <class TImpl>
-concept getColumnsWithParams = requires (TImpl impl, service::FieldParams params) 
+concept getColumnsWithParams = requires (TImpl impl, service::FieldParams params)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns(std::move(params)) } };
 };
 
 template <class TImpl>
-concept getColumns = requires (TImpl impl) 
+concept getColumns = requires (TImpl impl)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getColumns() } };
 };
 
 template <class TImpl>
-concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getRootFolders(std::move(params), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getRootFolders = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+concept getRootFolders = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getRootFolders(std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getSpecialFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::vector<SpecialFolder> idsArg) 
+concept getSpecialFoldersWithParams = requires (TImpl impl, service::FieldParams params, std::vector<SpecialFolder> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getSpecialFolders(std::move(params), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getSpecialFolders = requires (TImpl impl, std::vector<SpecialFolder> idsArg) 
+concept getSpecialFolders = requires (TImpl impl, std::vector<SpecialFolder> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> { impl.getSpecialFolders(std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getFolderPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg) 
+concept getFolderPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getFolderProperties(std::move(params), std::move(folderIdArg), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getFolderProperties = requires (TImpl impl, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg) 
+concept getFolderProperties = requires (TImpl impl, response::IdType folderIdArg, std::optional<std::vector<Column>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getFolderProperties(std::move(folderIdArg), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getItemPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg) 
+concept getItemPropertiesWithParams = requires (TImpl impl, service::FieldParams params, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getItemProperties(std::move(params), std::move(itemIdArg), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getItemProperties = requires (TImpl impl, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg) 
+concept getItemProperties = requires (TImpl impl, response::IdType itemIdArg, std::optional<std::vector<Column>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Property>>> { impl.getItemProperties(std::move(itemIdArg), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

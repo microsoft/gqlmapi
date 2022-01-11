@@ -14,25 +14,25 @@ namespace graphql::mapi::object {
 namespace methods::QueryHas {
 
 template <class TImpl>
-concept getStoresWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg) 
+concept getStoresWithParams = requires (TImpl impl, service::FieldParams params, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Store>>> { impl.getStores(std::move(params), std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept getStores = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg) 
+concept getStores = requires (TImpl impl, std::optional<std::vector<response::IdType>> idsArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<Store>>> { impl.getStores(std::move(idsArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };

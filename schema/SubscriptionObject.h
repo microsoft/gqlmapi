@@ -14,49 +14,49 @@ namespace graphql::mapi::object {
 namespace methods::SubscriptionHas {
 
 template <class TImpl>
-concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, ObjectId folderIdArg) 
+concept getItemsWithParams = requires (TImpl impl, service::FieldParams params, ObjectId folderIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> { impl.getItems(std::move(params), std::move(folderIdArg)) } };
 };
 
 template <class TImpl>
-concept getItems = requires (TImpl impl, ObjectId folderIdArg) 
+concept getItems = requires (TImpl impl, ObjectId folderIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> { impl.getItems(std::move(folderIdArg)) } };
 };
 
 template <class TImpl>
-concept getSubFoldersWithParams = requires (TImpl impl, service::FieldParams params, ObjectId parentFolderIdArg) 
+concept getSubFoldersWithParams = requires (TImpl impl, service::FieldParams params, ObjectId parentFolderIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getSubFolders(std::move(params), std::move(parentFolderIdArg)) } };
 };
 
 template <class TImpl>
-concept getSubFolders = requires (TImpl impl, ObjectId parentFolderIdArg) 
+concept getSubFolders = requires (TImpl impl, ObjectId parentFolderIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getSubFolders(std::move(parentFolderIdArg)) } };
 };
 
 template <class TImpl>
-concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, response::IdType storeIdArg) 
+concept getRootFoldersWithParams = requires (TImpl impl, service::FieldParams params, response::IdType storeIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getRootFolders(std::move(params), std::move(storeIdArg)) } };
 };
 
 template <class TImpl>
-concept getRootFolders = requires (TImpl impl, response::IdType storeIdArg) 
+concept getRootFolders = requires (TImpl impl, response::IdType storeIdArg)
 {
 	{ service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> { impl.getRootFolders(std::move(storeIdArg)) } };
 };
 
 template <class TImpl>
-concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
 };
 
 template <class TImpl>
-concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params) 
+concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.endSelectionSet(params) };
 };
