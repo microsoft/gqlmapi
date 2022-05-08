@@ -99,36 +99,36 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::ConversationHas
 
-class Conversation
+class [[nodiscard]] Conversation final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveSubject(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveCount(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveUnread(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveReceived(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveSubject(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveCount(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveUnread(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveReceived(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<int> getCount(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<int> getCount(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -136,7 +136,7 @@ private:
 		{
 		}
 
-		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ConversationHas::getIdWithParams<T>)
 			{
@@ -152,7 +152,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ConversationHas::getSubjectWithParams<T>)
 			{
@@ -168,7 +168,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<int> getCount(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<int> getCount(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ConversationHas::getCountWithParams<T>)
 			{
@@ -184,7 +184,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ConversationHas::getUnreadWithParams<T>)
 			{
@@ -200,7 +200,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ConversationHas::getReceivedWithParams<T>)
 			{
@@ -216,7 +216,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
 		{
 			if constexpr (methods::ConversationHas::getItemsWithParams<T>)
 			{
@@ -252,21 +252,26 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Conversation(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Conversation(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Conversation(std::shared_ptr<T> pimpl) noexcept
-		: Conversation { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Conversation { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Conversation)gql" };
 	}
 };
 

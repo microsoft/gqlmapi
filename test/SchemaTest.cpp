@@ -166,10 +166,12 @@ using namespace std::literals;
 constexpr auto storeId = "storeId"sv;
 constexpr auto objectId = "objectId"sv;
 
-const ObjectId folderId { { storeId.begin(), storeId.end() },
-	{ objectId.begin(), objectId.end() } };
-const auto storeIdEncoded = internal::Base64::toBase64(folderId.storeId);
-const auto objectIdEncoded = internal::Base64::toBase64(folderId.objectId);
+const ObjectId folderId { response::IdType::ByteData { storeId.begin(), storeId.end() },
+	response::IdType::ByteData { objectId.begin(), objectId.end() } };
+const auto storeIdEncoded =
+	internal::Base64::toBase64(folderId.storeId.get<response::IdType::ByteData>());
+const auto objectIdEncoded =
+	internal::Base64::toBase64(folderId.objectId.get<response::IdType::ByteData>());
 
 } // namespace
 
@@ -240,7 +242,7 @@ TEST(MAPISchemaTest, NotifySubscribeUnsubscribeItemAdded)
 		.WillOnce(ReturnRef(folderId.objectId));
 	ASSERT_TRUE(response::Type::Null == payload.type())
 		<< "should not set the payload till after the subscription event is delivered";
-	mockService->deliver({ "items"sv, {}, std::launch::async });
+	mockService->deliver({ "items"sv, {}, std::launch::async }).get();
 	auto mockItemsNotifyUnsubscribe = std::vector { std::make_shared<object::ItemChange>(
 		std::make_shared<object::ItemAdded>(mockItemAdded)) };
 	EXPECT_CALL(*mockSubscription,

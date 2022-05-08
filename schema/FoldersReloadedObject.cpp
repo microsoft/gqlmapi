@@ -21,7 +21,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-FoldersReloaded::FoldersReloaded(std::unique_ptr<Concept>&& pimpl) noexcept
+FoldersReloaded::FoldersReloaded(std::unique_ptr<const Concept>&& pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {

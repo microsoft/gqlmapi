@@ -7,7 +7,7 @@ project(gqlmapi VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(PEGTL 3.2.0 CONFIG REQUIRED)
-find_package(cppgraphqlgen 4.1.0 CONFIG REQUIRED)
+find_package(cppgraphqlgen 4.3.1 CONFIG REQUIRED)
 
 if(VCPKG_TARGET_TRIPLET)
   message(STATUS "Using ${VCPKG_TARGET_TRIPLET} triplet with vcpkg")

@@ -135,42 +135,42 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::MutationHas
 
-class Mutation
+class [[nodiscard]] Mutation final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveCreateItem(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveCreateSubFolder(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveModifyItem(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveModifyFolder(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveRemoveFolder(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveMarkAsRead(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveCopyItems(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveMoveItems(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveDeleteItems(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveCreateItem(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveCreateSubFolder(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveModifyItem(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveModifyFolder(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveRemoveFolder(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveMarkAsRead(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveCopyItems(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveMoveItems(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveDeleteItems(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
-		virtual service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const = 0;
-		virtual service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const = 0;
-		virtual service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-		virtual service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-		virtual service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -178,7 +178,7 @@ private:
 		{
 		}
 
-		service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const final
 		{
 			if constexpr (methods::MutationHas::applyCreateItemWithParams<T>)
 			{
@@ -194,7 +194,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const final
 		{
 			if constexpr (methods::MutationHas::applyCreateSubFolderWithParams<T>)
 			{
@@ -210,7 +210,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const final
 		{
 			if constexpr (methods::MutationHas::applyModifyItemWithParams<T>)
 			{
@@ -226,7 +226,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const final
 		{
 			if constexpr (methods::MutationHas::applyModifyFolderWithParams<T>)
 			{
@@ -242,7 +242,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const final
+		[[nodiscard]] service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const final
 		{
 			if constexpr (methods::MutationHas::applyRemoveFolderWithParams<T>)
 			{
@@ -258,7 +258,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const final
+		[[nodiscard]] service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const final
 		{
 			if constexpr (methods::MutationHas::applyMarkAsReadWithParams<T>)
 			{
@@ -274,7 +274,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		[[nodiscard]] service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
 		{
 			if constexpr (methods::MutationHas::applyCopyItemsWithParams<T>)
 			{
@@ -290,7 +290,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		[[nodiscard]] service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
 		{
 			if constexpr (methods::MutationHas::applyMoveItemsWithParams<T>)
 			{
@@ -306,7 +306,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const final
+		[[nodiscard]] service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const final
 		{
 			if constexpr (methods::MutationHas::applyDeleteItemsWithParams<T>)
 			{
@@ -342,21 +342,26 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Mutation(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Mutation(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Mutation(std::shared_ptr<T> pimpl) noexcept
-		: Mutation { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Mutation { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Mutation)gql" };
 	}
 };
 

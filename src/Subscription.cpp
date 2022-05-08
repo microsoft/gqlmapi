@@ -131,7 +131,7 @@ std::vector<std::shared_ptr<object::FolderChange>> Subscription::getSubFolders(
 std::vector<std::shared_ptr<object::FolderChange>> Subscription::getRootFolders(
 	service::FieldParams&& params, response::IdType&& storeIdArg)
 {
-	Registration<Folder> registration { { { std::move(storeIdArg), {} },
+	Registration<Folder> registration { { ObjectId { std::move(storeIdArg), {} },
 		std::move(params.fieldDirectives) } };
 	const auto [itr, itrEnd] = m_rootFolderSinks.equal_range(registration);
 
@@ -438,7 +438,7 @@ void Subscription::RegisterAdviseSinkProxy(service::await_async launch, std::str
 					&& itrDirective->second == required.second);
 			};
 
-			spService->deliver({ fieldName,
+			std::ignore = spService->deliver({ fieldName,
 				{ service::SubscriptionFilter { argumentsMatch, directivesMatch } },
 				launch,
 				std::make_shared<object::Subscription>(

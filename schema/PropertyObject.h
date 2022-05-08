@@ -51,28 +51,28 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::PropertyHas
 
-class Property
+class [[nodiscard]] Property final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveValue(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveValue(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -80,7 +80,7 @@ private:
 		{
 		}
 
-		service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<PropId>> getId(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::PropertyHas::getIdWithParams<T>)
 			{
@@ -96,7 +96,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<PropValue>> getValue(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::PropertyHas::getValueWithParams<T>)
 			{
@@ -132,21 +132,26 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Property(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Property(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Property(std::shared_ptr<T> pimpl) noexcept
-		: Property { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Property { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Property)gql" };
 	}
 };
 

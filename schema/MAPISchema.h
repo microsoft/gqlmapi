@@ -10,18 +10,19 @@
 
 #include "graphqlservice/internal/Schema.h"
 
-// Check if the library version is compatible with schemagen 4.1.0
+// Check if the library version is compatible with schemagen 4.3.0
 static_assert(graphql::internal::MajorVersion == 4, "regenerate with schemagen: major version mismatch");
-static_assert(graphql::internal::MinorVersion == 1, "regenerate with schemagen: minor version mismatch");
+static_assert(graphql::internal::MinorVersion == 3, "regenerate with schemagen: minor version mismatch");
 
+#include <array>
 #include <memory>
 #include <string>
-#include <vector>
+#include <string_view>
 
 namespace graphql {
 namespace mapi {
 
-enum class SpecialFolder
+enum class [[nodiscard]] SpecialFolder
 {
 	INBOX,
 	CALENDAR,
@@ -35,7 +36,43 @@ enum class SpecialFolder
 	SPAM
 };
 
-enum class PropType
+[[nodiscard]] constexpr auto getSpecialFolderNames() noexcept
+{
+	using namespace std::literals;
+
+	return std::array<std::string_view, 10> {
+		R"gql(INBOX)gql"sv,
+		R"gql(CALENDAR)gql"sv,
+		R"gql(CONTACTS)gql"sv,
+		R"gql(TASKS)gql"sv,
+		R"gql(ARCHIVE)gql"sv,
+		R"gql(DELETED)gql"sv,
+		R"gql(DRAFTS)gql"sv,
+		R"gql(OUTBOX)gql"sv,
+		R"gql(SENT)gql"sv,
+		R"gql(SPAM)gql"sv
+	};
+}
+
+[[nodiscard]] constexpr auto getSpecialFolderValues() noexcept
+{
+	using namespace std::literals;
+
+	return std::array<std::pair<std::string_view, SpecialFolder>, 10> {
+		std::make_pair(R"gql(SENT)gql"sv, SpecialFolder::SENT),
+		std::make_pair(R"gql(SPAM)gql"sv, SpecialFolder::SPAM),
+		std::make_pair(R"gql(INBOX)gql"sv, SpecialFolder::INBOX),
+		std::make_pair(R"gql(TASKS)gql"sv, SpecialFolder::TASKS),
+		std::make_pair(R"gql(DRAFTS)gql"sv, SpecialFolder::DRAFTS),
+		std::make_pair(R"gql(OUTBOX)gql"sv, SpecialFolder::OUTBOX),
+		std::make_pair(R"gql(ARCHIVE)gql"sv, SpecialFolder::ARCHIVE),
+		std::make_pair(R"gql(DELETED)gql"sv, SpecialFolder::DELETED),
+		std::make_pair(R"gql(CALENDAR)gql"sv, SpecialFolder::CALENDAR),
+		std::make_pair(R"gql(CONTACTS)gql"sv, SpecialFolder::CONTACTS)
+	};
+}
+
+enum class [[nodiscard]] PropType
 {
 	INT,
 	BOOL,
@@ -46,21 +83,99 @@ enum class PropType
 	STREAM
 };
 
-struct ObjectId
+[[nodiscard]] constexpr auto getPropTypeNames() noexcept
 {
+	using namespace std::literals;
+
+	return std::array<std::string_view, 7> {
+		R"gql(INT)gql"sv,
+		R"gql(BOOL)gql"sv,
+		R"gql(STRING)gql"sv,
+		R"gql(GUID)gql"sv,
+		R"gql(DATETIME)gql"sv,
+		R"gql(BINARY)gql"sv,
+		R"gql(STREAM)gql"sv
+	};
+}
+
+[[nodiscard]] constexpr auto getPropTypeValues() noexcept
+{
+	using namespace std::literals;
+
+	return std::array<std::pair<std::string_view, PropType>, 7> {
+		std::make_pair(R"gql(INT)gql"sv, PropType::INT),
+		std::make_pair(R"gql(BOOL)gql"sv, PropType::BOOL),
+		std::make_pair(R"gql(GUID)gql"sv, PropType::GUID),
+		std::make_pair(R"gql(BINARY)gql"sv, PropType::BINARY),
+		std::make_pair(R"gql(STREAM)gql"sv, PropType::STREAM),
+		std::make_pair(R"gql(STRING)gql"sv, PropType::STRING),
+		std::make_pair(R"gql(DATETIME)gql"sv, PropType::DATETIME)
+	};
+}
+
+struct [[nodiscard]] ObjectId
+{
+	explicit ObjectId(
+		response::IdType storeIdArg = response::IdType {},
+		response::IdType objectIdArg = response::IdType {}) noexcept;
+	ObjectId(const ObjectId& other);
+	ObjectId(ObjectId&& other) noexcept;
+
+	ObjectId& operator=(const ObjectId& other);
+	ObjectId& operator=(ObjectId&& other) noexcept;
+
 	response::IdType storeId {};
 	response::IdType objectId {};
 };
 
-struct NamedPropInput
+struct [[nodiscard]] NamedPropInput
 {
+	explicit NamedPropInput(
+		response::Value propsetArg = response::Value {},
+		std::optional<int> idArg = std::optional<int> {},
+		std::optional<std::string> nameArg = std::optional<std::string> {}) noexcept;
+	NamedPropInput(const NamedPropInput& other);
+	NamedPropInput(NamedPropInput&& other) noexcept;
+
+	NamedPropInput& operator=(const NamedPropInput& other);
+	NamedPropInput& operator=(NamedPropInput&& other) noexcept;
+
 	response::Value propset {};
 	std::optional<int> id {};
 	std::optional<std::string> name {};
 };
 
-struct PropValueInput
+struct [[nodiscard]] PropIdInput
 {
+	explicit PropIdInput(
+		std::optional<int> idArg = std::optional<int> {},
+		std::unique_ptr<NamedPropInput> namedArg = std::unique_ptr<NamedPropInput> {}) noexcept;
+	PropIdInput(const PropIdInput& other);
+	PropIdInput(PropIdInput&& other) noexcept;
+
+	PropIdInput& operator=(const PropIdInput& other);
+	PropIdInput& operator=(PropIdInput&& other) noexcept;
+
+	std::optional<int> id {};
+	std::unique_ptr<NamedPropInput> named {};
+};
+
+struct [[nodiscard]] PropValueInput
+{
+	explicit PropValueInput(
+		std::optional<int> integerArg = std::optional<int> {},
+		std::optional<bool> booleanArg = std::optional<bool> {},
+		std::optional<std::string> stringArg = std::optional<std::string> {},
+		std::optional<response::Value> guidArg = std::optional<response::Value> {},
+		std::optional<response::Value> timeArg = std::optional<response::Value> {},
+		std::optional<response::IdType> binArg = std::optional<response::IdType> {},
+		std::optional<response::Value> streamArg = std::optional<response::Value> {}) noexcept;
+	PropValueInput(const PropValueInput& other);
+	PropValueInput(PropValueInput&& other) noexcept;
+
+	PropValueInput& operator=(const PropValueInput& other);
+	PropValueInput& operator=(PropValueInput&& other) noexcept;
+
 	std::optional<int> integer {};
 	std::optional<bool> boolean {};
 	std::optional<std::string> string {};
@@ -70,39 +185,24 @@ struct PropValueInput
 	std::optional<response::Value> stream {};
 };
 
-struct MultipleItemsInput
-{
-	ObjectId folderId {};
-	std::vector<response::IdType> itemIds {};
-};
+struct PropertyInput;
 
-struct PropIdInput
+struct [[nodiscard]] CreateItemInput
 {
-	std::optional<int> id {};
-	std::optional<NamedPropInput> named {};
-};
+	explicit CreateItemInput(
+		ObjectId folderIdArg = ObjectId {},
+		std::string subjectArg = std::string {},
+		std::optional<response::IdType> conversationIdArg = std::optional<response::IdType> {},
+		bool readArg = bool {},
+		std::optional<response::Value> receivedArg = std::optional<response::Value> {},
+		std::optional<response::Value> modifiedArg = std::optional<response::Value> {},
+		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {}) noexcept;
+	CreateItemInput(const CreateItemInput& other);
+	CreateItemInput(CreateItemInput&& other) noexcept;
 
-struct PropertyInput
-{
-	PropIdInput id {};
-	PropValueInput value {};
-};
+	CreateItemInput& operator=(const CreateItemInput& other);
+	CreateItemInput& operator=(CreateItemInput&& other) noexcept;
 
-struct Order
-{
-	bool descending {};
-	PropIdInput property {};
-	PropType type {};
-};
-
-struct Column
-{
-	PropIdInput property {};
-	PropType type {};
-};
-
-struct CreateItemInput
-{
 	ObjectId folderId {};
 	std::string subject {};
 	std::optional<response::IdType> conversationId {};
@@ -112,15 +212,37 @@ struct CreateItemInput
 	std::optional<std::vector<PropertyInput>> properties {};
 };
 
-struct CreateSubFolderInput
+struct [[nodiscard]] CreateSubFolderInput
 {
+	explicit CreateSubFolderInput(
+		ObjectId folderIdArg = ObjectId {},
+		std::string nameArg = std::string {},
+		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {}) noexcept;
+	CreateSubFolderInput(const CreateSubFolderInput& other);
+	CreateSubFolderInput(CreateSubFolderInput&& other) noexcept;
+
+	CreateSubFolderInput& operator=(const CreateSubFolderInput& other);
+	CreateSubFolderInput& operator=(CreateSubFolderInput&& other) noexcept;
+
 	ObjectId folderId {};
 	std::string name {};
 	std::optional<std::vector<PropertyInput>> properties {};
 };
 
-struct ModifyItemInput
+struct [[nodiscard]] ModifyItemInput
 {
+	explicit ModifyItemInput(
+		ObjectId idArg = ObjectId {},
+		std::optional<std::string> subjectArg = std::optional<std::string> {},
+		std::optional<bool> readArg = std::optional<bool> {},
+		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {},
+		std::optional<std::vector<PropIdInput>> deletedArg = std::optional<std::vector<PropIdInput>> {}) noexcept;
+	ModifyItemInput(const ModifyItemInput& other);
+	ModifyItemInput(ModifyItemInput&& other) noexcept;
+
+	ModifyItemInput& operator=(const ModifyItemInput& other);
+	ModifyItemInput& operator=(ModifyItemInput&& other) noexcept;
+
 	ObjectId id {};
 	std::optional<std::string> subject {};
 	std::optional<bool> read {};
@@ -128,12 +250,85 @@ struct ModifyItemInput
 	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
-struct ModifyFolderInput
+struct [[nodiscard]] ModifyFolderInput
 {
+	explicit ModifyFolderInput(
+		ObjectId folderIdArg = ObjectId {},
+		std::optional<std::string> nameArg = std::optional<std::string> {},
+		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {},
+		std::optional<std::vector<PropIdInput>> deletedArg = std::optional<std::vector<PropIdInput>> {}) noexcept;
+	ModifyFolderInput(const ModifyFolderInput& other);
+	ModifyFolderInput(ModifyFolderInput&& other) noexcept;
+
+	ModifyFolderInput& operator=(const ModifyFolderInput& other);
+	ModifyFolderInput& operator=(ModifyFolderInput&& other) noexcept;
+
 	ObjectId folderId {};
 	std::optional<std::string> name {};
 	std::optional<std::vector<PropertyInput>> properties {};
 	std::optional<std::vector<PropIdInput>> deleted {};
+};
+
+struct [[nodiscard]] MultipleItemsInput
+{
+	explicit MultipleItemsInput(
+		ObjectId folderIdArg = ObjectId {},
+		std::vector<response::IdType> itemIdsArg = std::vector<response::IdType> {}) noexcept;
+	MultipleItemsInput(const MultipleItemsInput& other);
+	MultipleItemsInput(MultipleItemsInput&& other) noexcept;
+
+	MultipleItemsInput& operator=(const MultipleItemsInput& other);
+	MultipleItemsInput& operator=(MultipleItemsInput&& other) noexcept;
+
+	ObjectId folderId {};
+	std::vector<response::IdType> itemIds {};
+};
+
+struct [[nodiscard]] PropertyInput
+{
+	explicit PropertyInput(
+		PropIdInput idArg = PropIdInput {},
+		PropValueInput valueArg = PropValueInput {}) noexcept;
+	PropertyInput(const PropertyInput& other);
+	PropertyInput(PropertyInput&& other) noexcept;
+
+	PropertyInput& operator=(const PropertyInput& other);
+	PropertyInput& operator=(PropertyInput&& other) noexcept;
+
+	PropIdInput id {};
+	PropValueInput value {};
+};
+
+struct [[nodiscard]] Order
+{
+	explicit Order(
+		bool descendingArg = bool {},
+		PropIdInput propertyArg = PropIdInput {},
+		PropType typeArg = PropType {}) noexcept;
+	Order(const Order& other);
+	Order(Order&& other) noexcept;
+
+	Order& operator=(const Order& other);
+	Order& operator=(Order&& other) noexcept;
+
+	bool descending {};
+	PropIdInput property {};
+	PropType type {};
+};
+
+struct [[nodiscard]] Column
+{
+	explicit Column(
+		PropIdInput propertyArg = PropIdInput {},
+		PropType typeArg = PropType {}) noexcept;
+	Column(const Column& other);
+	Column(Column&& other) noexcept;
+
+	Column& operator=(const Column& other);
+	Column& operator=(Column&& other) noexcept;
+
+	PropIdInput property {};
+	PropType type {};
 };
 
 namespace object {
@@ -175,15 +370,19 @@ class FoldersReloaded;
 
 } // namespace object
 
-class Operations
+class [[nodiscard]] Operations final
 	: public service::Request
 {
 public:
 	explicit Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation, std::shared_ptr<object::Subscription> subscription);
 
-	template <class TQuery, class TMutation, class TSubscription>
-	explicit Operations(std::shared_ptr<TQuery> query, std::shared_ptr<TMutation> mutation, std::shared_ptr<TSubscription> subscription)
-		: Operations { std::make_shared<object::Query>(std::move(query)), std::make_shared<object::Mutation>(std::move(mutation)), std::make_shared<object::Subscription>(std::move(subscription)) }
+	template <class TQuery, class TMutation, class TSubscription = service::SubscriptionPlaceholder>
+	explicit Operations(std::shared_ptr<TQuery> query, std::shared_ptr<TMutation> mutation, std::shared_ptr<TSubscription> subscription = {})
+		: Operations {
+			std::make_shared<object::Query>(std::move(query)),
+			std::make_shared<object::Mutation>(std::move(mutation)),
+			subscription ? std::make_shared<object::Subscription>(std::move(subscription)) : std::shared_ptr<object::Subscription> {}
+		}
 	{
 	}
 
@@ -231,6 +430,82 @@ void AddFoldersReloadedDetails(const std::shared_ptr<schema::ObjectType>& typeFo
 std::shared_ptr<schema::Schema> GetSchema();
 
 } // namespace mapi
+
+namespace service {
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::ObjectId>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::NamedPropInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::PropIdInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::PropValueInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::CreateItemInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::CreateSubFolderInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::ModifyItemInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::ModifyFolderInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::MultipleItemsInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::PropertyInput>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::Order>() noexcept
+{
+	return true;
+}
+
+template <>
+[[nodiscard]] constexpr bool isInputType<mapi::Column>() noexcept
+{
+	return true;
+}
+
+} // namespace service
 } // namespace graphql
 
 #endif // MAPISCHEMA_H

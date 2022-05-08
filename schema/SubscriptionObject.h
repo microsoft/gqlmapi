@@ -63,30 +63,30 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::SubscriptionHas
 
-class Subscription
+class [[nodiscard]] Subscription final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveSubFolders(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveSubFolders(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -94,7 +94,7 @@ private:
 		{
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<ItemChange>>> getItems(service::FieldParams&& params, ObjectId&& folderIdArg) const final
 		{
 			if constexpr (methods::SubscriptionHas::getItemsWithParams<T>)
 			{
@@ -110,7 +110,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getSubFolders(service::FieldParams&& params, ObjectId&& parentFolderIdArg) const final
 		{
 			if constexpr (methods::SubscriptionHas::getSubFoldersWithParams<T>)
 			{
@@ -126,7 +126,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<FolderChange>>> getRootFolders(service::FieldParams&& params, response::IdType&& storeIdArg) const final
 		{
 			if constexpr (methods::SubscriptionHas::getRootFoldersWithParams<T>)
 			{
@@ -162,21 +162,26 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Subscription(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Subscription(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Subscription(std::shared_ptr<T> pimpl) noexcept
-		: Subscription { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Subscription { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Subscription)gql" };
 	}
 };
 

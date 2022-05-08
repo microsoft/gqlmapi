@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-Property::Property(std::unique_ptr<Concept>&& pimpl) noexcept
+Property::Property(std::unique_ptr<const Concept>&& pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {

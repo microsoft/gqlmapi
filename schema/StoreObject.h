@@ -111,38 +111,38 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::StoreHas
 
-class Store
+class [[nodiscard]] Store final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveSpecialFolders(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveFolderProperties(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveItemProperties(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveRootFolders(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveSpecialFolders(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveFolderProperties(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveItemProperties(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -150,7 +150,7 @@ private:
 		{
 		}
 
-		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::StoreHas::getIdWithParams<T>)
 			{
@@ -166,7 +166,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::StoreHas::getNameWithParams<T>)
 			{
@@ -182,7 +182,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::StoreHas::getColumnsWithParams<T>)
 			{
@@ -198,7 +198,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getRootFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
 		{
 			if constexpr (methods::StoreHas::getRootFoldersWithParams<T>)
 			{
@@ -214,7 +214,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSpecialFolders(service::FieldParams&& params, std::vector<SpecialFolder>&& idsArg) const final
 		{
 			if constexpr (methods::StoreHas::getSpecialFoldersWithParams<T>)
 			{
@@ -230,7 +230,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getFolderProperties(service::FieldParams&& params, response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg) const final
 		{
 			if constexpr (methods::StoreHas::getFolderPropertiesWithParams<T>)
 			{
@@ -246,7 +246,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getItemProperties(service::FieldParams&& params, response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg) const final
 		{
 			if constexpr (methods::StoreHas::getItemPropertiesWithParams<T>)
 			{
@@ -282,21 +282,26 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Store(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Store(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Store(std::shared_ptr<T> pimpl) noexcept
-		: Store { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Store { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Store)gql" };
 	}
 };
 

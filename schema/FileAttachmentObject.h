@@ -82,32 +82,32 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::FileAttachmentHas
 
-class FileAttachment
+class [[nodiscard]] FileAttachment final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveContents(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveProperties(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveContents(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveProperties(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -115,7 +115,7 @@ private:
 		{
 		}
 
-		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::FileAttachmentHas::getIdWithParams<T>)
 			{
@@ -131,7 +131,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::FileAttachmentHas::getNameWithParams<T>)
 			{
@@ -147,7 +147,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::FileAttachmentHas::getContentsWithParams<T>)
 			{
@@ -163,7 +163,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const final
 		{
 			if constexpr (methods::FileAttachmentHas::getPropertiesWithParams<T>)
 			{
@@ -199,30 +199,35 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	FileAttachment(std::unique_ptr<Concept>&& pimpl) noexcept;
+	FileAttachment(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
 	// Unions which include this type
 	friend Attachment;
 
 	template <class I>
-	static constexpr bool implements() noexcept
+	[[nodiscard]] static constexpr bool implements() noexcept
 	{
 		return implements::FileAttachmentIs<I>;
 	}
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	FileAttachment(std::shared_ptr<T> pimpl) noexcept
-		: FileAttachment { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: FileAttachment { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(FileAttachment)gql" };
 	}
 };
 

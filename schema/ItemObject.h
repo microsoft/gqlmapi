@@ -202,52 +202,52 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::ItemHas
 
-class Item
+class [[nodiscard]] Item final
 	: public service::Object
 {
 private:
-	service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveParentFolder(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveConversation(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveSubject(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveSender(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveTo(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveCc(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveBody(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveRead(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveReceived(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveModified(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolvePreview(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
-	service::AwaitableResolver resolveAttachments(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveParentFolder(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveConversation(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveSubject(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveSender(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveTo(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveCc(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveBody(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveRead(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveReceived(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveModified(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolvePreview(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolveAttachments(service::ResolverParams&& params) const;
 
-	service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct Concept
+	struct [[nodiscard]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::shared_ptr<Conversation>> getConversation(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<std::string>> getSender(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<std::string>> getTo(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<std::string>> getCc(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<response::Value>> getBody(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<bool> getRead(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<response::Value>> getModified(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableScalar<std::optional<std::string>> getPreview(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
-		virtual service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> getAttachments(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Conversation>> getConversation(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<std::string>> getSender(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<std::string>> getTo(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<std::string>> getCc(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getBody(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<bool> getRead(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getModified(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableScalar<std::optional<std::string>> getPreview(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
+		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> getAttachments(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct Model
+	struct [[nodiscard]] Model
 		: Concept
 	{
 		Model(std::shared_ptr<T>&& pimpl) noexcept
@@ -255,7 +255,7 @@ private:
 		{
 		}
 
-		service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getIdWithParams<T>)
 			{
@@ -271,7 +271,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getParentFolderWithParams<T>)
 			{
@@ -287,7 +287,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::shared_ptr<Conversation>> getConversation(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Conversation>> getConversation(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getConversationWithParams<T>)
 			{
@@ -303,7 +303,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::string> getSubject(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getSubjectWithParams<T>)
 			{
@@ -319,7 +319,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<std::string>> getSender(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<std::string>> getSender(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getSenderWithParams<T>)
 			{
@@ -335,7 +335,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<std::string>> getTo(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<std::string>> getTo(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getToWithParams<T>)
 			{
@@ -351,7 +351,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<std::string>> getCc(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<std::string>> getCc(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getCcWithParams<T>)
 			{
@@ -367,7 +367,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<response::Value>> getBody(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getBody(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getBodyWithParams<T>)
 			{
@@ -383,7 +383,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<bool> getRead(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<bool> getRead(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getReadWithParams<T>)
 			{
@@ -399,7 +399,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getReceived(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getReceivedWithParams<T>)
 			{
@@ -415,7 +415,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<response::Value>> getModified(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getModified(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getModifiedWithParams<T>)
 			{
@@ -431,7 +431,7 @@ private:
 			}
 		}
 
-		service::AwaitableScalar<std::optional<std::string>> getPreview(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableScalar<std::optional<std::string>> getPreview(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getPreviewWithParams<T>)
 			{
@@ -447,7 +447,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
 		{
 			if constexpr (methods::ItemHas::getColumnsWithParams<T>)
 			{
@@ -463,7 +463,7 @@ private:
 			}
 		}
 
-		service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> getAttachments(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Attachment>>> getAttachments(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
 		{
 			if constexpr (methods::ItemHas::getAttachmentsWithParams<T>)
 			{
@@ -499,30 +499,35 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Item(std::unique_ptr<Concept>&& pimpl) noexcept;
+	Item(std::unique_ptr<const Concept>&& pimpl) noexcept;
 
 	// Unions which include this type
 	friend Attachment;
 
 	template <class I>
-	static constexpr bool implements() noexcept
+	[[nodiscard]] static constexpr bool implements() noexcept
 	{
 		return implements::ItemIs<I>;
 	}
 
-	service::TypeNames getTypeNames() const noexcept;
-	service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
 
 	void beginSelectionSet(const service::SelectionSetParams& params) const final;
 	void endSelectionSet(const service::SelectionSetParams& params) const final;
 
-	const std::unique_ptr<Concept> _pimpl;
+	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
 	Item(std::shared_ptr<T> pimpl) noexcept
-		: Item { std::unique_ptr<Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
+		: Item { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
+	}
+
+	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	{
+		return { R"gql(Item)gql" };
 	}
 };
 

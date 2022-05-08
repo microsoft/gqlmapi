@@ -17,7 +17,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 using namespace std::literals;
@@ -25,18 +25,8 @@ using namespace std::literals;
 namespace graphql {
 namespace service {
 
-static const std::array<std::string_view, 10> s_namesSpecialFolder = {
-	R"gql(INBOX)gql"sv,
-	R"gql(CALENDAR)gql"sv,
-	R"gql(CONTACTS)gql"sv,
-	R"gql(TASKS)gql"sv,
-	R"gql(ARCHIVE)gql"sv,
-	R"gql(DELETED)gql"sv,
-	R"gql(DRAFTS)gql"sv,
-	R"gql(OUTBOX)gql"sv,
-	R"gql(SENT)gql"sv,
-	R"gql(SPAM)gql"sv
-};
+static const auto s_namesSpecialFolder = mapi::getSpecialFolderNames();
+static const auto s_valuesSpecialFolder = mapi::getSpecialFolderValues();
 
 template <>
 mapi::SpecialFolder ModifiedArgument<mapi::SpecialFolder>::convert(const response::Value& value)
@@ -46,14 +36,16 @@ mapi::SpecialFolder ModifiedArgument<mapi::SpecialFolder>::convert(const respons
 		throw service::schema_exception { { R"ex(not a valid SpecialFolder value)ex" } };
 	}
 
-	const auto itr = std::find(s_namesSpecialFolder.cbegin(), s_namesSpecialFolder.cend(), value.get<std::string>());
+	const auto result = internal::sorted_map_lookup<internal::shorter_or_less>(
+		s_valuesSpecialFolder,
+		std::string_view { value.get<std::string>() });
 
-	if (itr == s_namesSpecialFolder.cend())
+	if (!result)
 	{
 		throw service::schema_exception { { R"ex(not a valid SpecialFolder value)ex" } };
 	}
 
-	return static_cast<mapi::SpecialFolder>(itr - s_namesSpecialFolder.cbegin());
+	return *result;
 }
 
 template <>
@@ -78,23 +70,19 @@ void ModifiedResult<mapi::SpecialFolder>::validateScalar(const response::Value& 
 		throw service::schema_exception { { R"ex(not a valid SpecialFolder value)ex" } };
 	}
 
-	const auto itr = std::find(s_namesSpecialFolder.cbegin(), s_namesSpecialFolder.cend(), value.get<std::string>());
+	const auto [itr, itrEnd] = internal::sorted_map_equal_range<internal::shorter_or_less>(
+		s_valuesSpecialFolder.begin(),
+		s_valuesSpecialFolder.end(),
+		std::string_view { value.get<std::string>() });
 
-	if (itr == s_namesSpecialFolder.cend())
+	if (itr == itrEnd)
 	{
 		throw service::schema_exception { { R"ex(not a valid SpecialFolder value)ex" } };
 	}
 }
 
-static const std::array<std::string_view, 7> s_namesPropType = {
-	R"gql(INT)gql"sv,
-	R"gql(BOOL)gql"sv,
-	R"gql(STRING)gql"sv,
-	R"gql(GUID)gql"sv,
-	R"gql(DATETIME)gql"sv,
-	R"gql(BINARY)gql"sv,
-	R"gql(STREAM)gql"sv
-};
+static const auto s_namesPropType = mapi::getPropTypeNames();
+static const auto s_valuesPropType = mapi::getPropTypeValues();
 
 template <>
 mapi::PropType ModifiedArgument<mapi::PropType>::convert(const response::Value& value)
@@ -104,14 +92,16 @@ mapi::PropType ModifiedArgument<mapi::PropType>::convert(const response::Value& 
 		throw service::schema_exception { { R"ex(not a valid PropType value)ex" } };
 	}
 
-	const auto itr = std::find(s_namesPropType.cbegin(), s_namesPropType.cend(), value.get<std::string>());
+	const auto result = internal::sorted_map_lookup<internal::shorter_or_less>(
+		s_valuesPropType,
+		std::string_view { value.get<std::string>() });
 
-	if (itr == s_namesPropType.cend())
+	if (!result)
 	{
 		throw service::schema_exception { { R"ex(not a valid PropType value)ex" } };
 	}
 
-	return static_cast<mapi::PropType>(itr - s_namesPropType.cbegin());
+	return *result;
 }
 
 template <>
@@ -136,9 +126,12 @@ void ModifiedResult<mapi::PropType>::validateScalar(const response::Value& value
 		throw service::schema_exception { { R"ex(not a valid PropType value)ex" } };
 	}
 
-	const auto itr = std::find(s_namesPropType.cbegin(), s_namesPropType.cend(), value.get<std::string>());
+	const auto [itr, itrEnd] = internal::sorted_map_equal_range<internal::shorter_or_less>(
+		s_valuesPropType.begin(),
+		s_valuesPropType.end(),
+		std::string_view { value.get<std::string>() });
 
-	if (itr == s_namesPropType.cend())
+	if (itr == itrEnd)
 	{
 		throw service::schema_exception { { R"ex(not a valid PropType value)ex" } };
 	}
@@ -150,7 +143,7 @@ mapi::ObjectId ModifiedArgument<mapi::ObjectId>::convert(const response::Value& 
 	auto valueStoreId = service::ModifiedArgument<response::IdType>::require("storeId", value);
 	auto valueObjectId = service::ModifiedArgument<response::IdType>::require("objectId", value);
 
-	return {
+	return mapi::ObjectId {
 		std::move(valueStoreId),
 		std::move(valueObjectId)
 	};
@@ -163,10 +156,22 @@ mapi::NamedPropInput ModifiedArgument<mapi::NamedPropInput>::convert(const respo
 	auto valueId = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("id", value);
 	auto valueName = service::ModifiedArgument<std::string>::require<service::TypeModifier::Nullable>("name", value);
 
-	return {
+	return mapi::NamedPropInput {
 		std::move(valuePropset),
 		std::move(valueId),
 		std::move(valueName)
+	};
+}
+
+template <>
+mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::Value& value)
+{
+	auto valueId = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("id", value);
+	auto valueNamed = service::ModifiedArgument<mapi::NamedPropInput>::require<service::TypeModifier::Nullable>("named", value);
+
+	return mapi::PropIdInput {
+		std::move(valueId),
+		std::move(valueNamed)
 	};
 }
 
@@ -181,7 +186,7 @@ mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const respo
 	auto valueBin = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable>("bin", value);
 	auto valueStream = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("stream", value);
 
-	return {
+	return mapi::PropValueInput {
 		std::move(valueInteger),
 		std::move(valueBoolean),
 		std::move(valueString),
@@ -189,82 +194,6 @@ mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const respo
 		std::move(valueTime),
 		std::move(valueBin),
 		std::move(valueStream)
-	};
-}
-
-template <>
-mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(const response::Value& value)
-{
-	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
-	auto valueItemIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::List>("itemIds", value);
-
-	return {
-		std::move(valueFolderId),
-		std::move(valueItemIds)
-	};
-}
-
-template <>
-mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::Value& value)
-{
-	auto valueId = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("id", value);
-	auto valueNamed = service::ModifiedArgument<mapi::NamedPropInput>::require<service::TypeModifier::Nullable>("named", value);
-
-	return {
-		std::move(valueId),
-		std::move(valueNamed)
-	};
-}
-
-template <>
-mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const response::Value& value)
-{
-	auto valueId = service::ModifiedArgument<mapi::PropIdInput>::require("id", value);
-	auto valueValue = service::ModifiedArgument<mapi::PropValueInput>::require("value", value);
-
-	return {
-		std::move(valueId),
-		std::move(valueValue)
-	};
-}
-
-template <>
-mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
-{
-	const auto defaultValue = []()
-	{
-		response::Value values(response::Type::Map);
-		response::Value entry;
-
-		entry = response::Value(false);
-		values.emplace_back("descending", std::move(entry));
-
-		return values;
-	}();
-
-	auto pairDescending = service::ModifiedArgument<bool>::find("descending", value);
-	auto valueDescending = (pairDescending.second
-		? std::move(pairDescending.first)
-		: service::ModifiedArgument<bool>::require("descending", defaultValue));
-	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
-	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
-
-	return {
-		std::move(valueDescending),
-		std::move(valueProperty),
-		std::move(valueType)
-	};
-}
-
-template <>
-mapi::Column ModifiedArgument<mapi::Column>::convert(const response::Value& value)
-{
-	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
-	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
-
-	return {
-		std::move(valueProperty),
-		std::move(valueType)
 	};
 }
 
@@ -293,7 +222,7 @@ mapi::CreateItemInput ModifiedArgument<mapi::CreateItemInput>::convert(const res
 	auto valueModified = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("modified", value);
 	auto valueProperties = service::ModifiedArgument<mapi::PropertyInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("properties", value);
 
-	return {
+	return mapi::CreateItemInput {
 		std::move(valueFolderId),
 		std::move(valueSubject),
 		std::move(valueConversationId),
@@ -311,7 +240,7 @@ mapi::CreateSubFolderInput ModifiedArgument<mapi::CreateSubFolderInput>::convert
 	auto valueName = service::ModifiedArgument<std::string>::require("name", value);
 	auto valueProperties = service::ModifiedArgument<mapi::PropertyInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("properties", value);
 
-	return {
+	return mapi::CreateSubFolderInput {
 		std::move(valueFolderId),
 		std::move(valueName),
 		std::move(valueProperties)
@@ -327,7 +256,7 @@ mapi::ModifyItemInput ModifiedArgument<mapi::ModifyItemInput>::convert(const res
 	auto valueProperties = service::ModifiedArgument<mapi::PropertyInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("properties", value);
 	auto valueDeleted = service::ModifiedArgument<mapi::PropIdInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("deleted", value);
 
-	return {
+	return mapi::ModifyItemInput {
 		std::move(valueId),
 		std::move(valueSubject),
 		std::move(valueRead),
@@ -344,7 +273,7 @@ mapi::ModifyFolderInput ModifiedArgument<mapi::ModifyFolderInput>::convert(const
 	auto valueProperties = service::ModifiedArgument<mapi::PropertyInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("properties", value);
 	auto valueDeleted = service::ModifiedArgument<mapi::PropIdInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("deleted", value);
 
-	return {
+	return mapi::ModifyFolderInput {
 		std::move(valueFolderId),
 		std::move(valueName),
 		std::move(valueProperties),
@@ -352,15 +281,613 @@ mapi::ModifyFolderInput ModifiedArgument<mapi::ModifyFolderInput>::convert(const
 	};
 }
 
+template <>
+mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(const response::Value& value)
+{
+	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
+	auto valueItemIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::List>("itemIds", value);
+
+	return mapi::MultipleItemsInput {
+		std::move(valueFolderId),
+		std::move(valueItemIds)
+	};
+}
+
+template <>
+mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const response::Value& value)
+{
+	auto valueId = service::ModifiedArgument<mapi::PropIdInput>::require("id", value);
+	auto valueValue = service::ModifiedArgument<mapi::PropValueInput>::require("value", value);
+
+	return mapi::PropertyInput {
+		std::move(valueId),
+		std::move(valueValue)
+	};
+}
+
+template <>
+mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
+{
+	const auto defaultValue = []()
+	{
+		response::Value values(response::Type::Map);
+		response::Value entry;
+
+		entry = response::Value(false);
+		values.emplace_back("descending", std::move(entry));
+
+		return values;
+	}();
+
+	auto pairDescending = service::ModifiedArgument<bool>::find("descending", value);
+	auto valueDescending = (pairDescending.second
+		? std::move(pairDescending.first)
+		: service::ModifiedArgument<bool>::require("descending", defaultValue));
+	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
+	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
+
+	return mapi::Order {
+		std::move(valueDescending),
+		std::move(valueProperty),
+		std::move(valueType)
+	};
+}
+
+template <>
+mapi::Column ModifiedArgument<mapi::Column>::convert(const response::Value& value)
+{
+	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
+	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
+
+	return mapi::Column {
+		std::move(valueProperty),
+		std::move(valueType)
+	};
+}
+
 } // namespace service
 
 namespace mapi {
 
+ObjectId::ObjectId(
+		response::IdType storeIdArg,
+		response::IdType objectIdArg) noexcept
+	: storeId { std::move(storeIdArg) }
+	, objectId { std::move(objectIdArg) }
+{
+}
+
+ObjectId::ObjectId(const ObjectId& other)
+	: storeId { service::ModifiedArgument<response::IdType>::duplicate(other.storeId) }
+	, objectId { service::ModifiedArgument<response::IdType>::duplicate(other.objectId) }
+{
+}
+
+ObjectId::ObjectId(ObjectId&& other) noexcept
+	: storeId { std::move(other.storeId) }
+	, objectId { std::move(other.objectId) }
+{
+}
+
+ObjectId& ObjectId::operator=(const ObjectId& other)
+{
+	ObjectId value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+ObjectId& ObjectId::operator=(ObjectId&& other) noexcept
+{
+	storeId = std::move(other.storeId);
+	objectId = std::move(other.objectId);
+
+	return *this;
+}
+
+NamedPropInput::NamedPropInput(
+		response::Value propsetArg,
+		std::optional<int> idArg,
+		std::optional<std::string> nameArg) noexcept
+	: propset { std::move(propsetArg) }
+	, id { std::move(idArg) }
+	, name { std::move(nameArg) }
+{
+}
+
+NamedPropInput::NamedPropInput(const NamedPropInput& other)
+	: propset { service::ModifiedArgument<response::Value>::duplicate(other.propset) }
+	, id { service::ModifiedArgument<int>::duplicate<service::TypeModifier::Nullable>(other.id) }
+	, name { service::ModifiedArgument<std::string>::duplicate<service::TypeModifier::Nullable>(other.name) }
+{
+}
+
+NamedPropInput::NamedPropInput(NamedPropInput&& other) noexcept
+	: propset { std::move(other.propset) }
+	, id { std::move(other.id) }
+	, name { std::move(other.name) }
+{
+}
+
+NamedPropInput& NamedPropInput::operator=(const NamedPropInput& other)
+{
+	NamedPropInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+NamedPropInput& NamedPropInput::operator=(NamedPropInput&& other) noexcept
+{
+	propset = std::move(other.propset);
+	id = std::move(other.id);
+	name = std::move(other.name);
+
+	return *this;
+}
+
+PropIdInput::PropIdInput(
+		std::optional<int> idArg,
+		std::unique_ptr<NamedPropInput> namedArg) noexcept
+	: id { std::move(idArg) }
+	, named { std::move(namedArg) }
+{
+}
+
+PropIdInput::PropIdInput(const PropIdInput& other)
+	: id { service::ModifiedArgument<int>::duplicate<service::TypeModifier::Nullable>(other.id) }
+	, named { service::ModifiedArgument<NamedPropInput>::duplicate<service::TypeModifier::Nullable>(other.named) }
+{
+}
+
+PropIdInput::PropIdInput(PropIdInput&& other) noexcept
+	: id { std::move(other.id) }
+	, named { std::move(other.named) }
+{
+}
+
+PropIdInput& PropIdInput::operator=(const PropIdInput& other)
+{
+	PropIdInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+PropIdInput& PropIdInput::operator=(PropIdInput&& other) noexcept
+{
+	id = std::move(other.id);
+	named = std::move(other.named);
+
+	return *this;
+}
+
+PropValueInput::PropValueInput(
+		std::optional<int> integerArg,
+		std::optional<bool> booleanArg,
+		std::optional<std::string> stringArg,
+		std::optional<response::Value> guidArg,
+		std::optional<response::Value> timeArg,
+		std::optional<response::IdType> binArg,
+		std::optional<response::Value> streamArg) noexcept
+	: integer { std::move(integerArg) }
+	, boolean { std::move(booleanArg) }
+	, string { std::move(stringArg) }
+	, guid { std::move(guidArg) }
+	, time { std::move(timeArg) }
+	, bin { std::move(binArg) }
+	, stream { std::move(streamArg) }
+{
+}
+
+PropValueInput::PropValueInput(const PropValueInput& other)
+	: integer { service::ModifiedArgument<int>::duplicate<service::TypeModifier::Nullable>(other.integer) }
+	, boolean { service::ModifiedArgument<bool>::duplicate<service::TypeModifier::Nullable>(other.boolean) }
+	, string { service::ModifiedArgument<std::string>::duplicate<service::TypeModifier::Nullable>(other.string) }
+	, guid { service::ModifiedArgument<response::Value>::duplicate<service::TypeModifier::Nullable>(other.guid) }
+	, time { service::ModifiedArgument<response::Value>::duplicate<service::TypeModifier::Nullable>(other.time) }
+	, bin { service::ModifiedArgument<response::IdType>::duplicate<service::TypeModifier::Nullable>(other.bin) }
+	, stream { service::ModifiedArgument<response::Value>::duplicate<service::TypeModifier::Nullable>(other.stream) }
+{
+}
+
+PropValueInput::PropValueInput(PropValueInput&& other) noexcept
+	: integer { std::move(other.integer) }
+	, boolean { std::move(other.boolean) }
+	, string { std::move(other.string) }
+	, guid { std::move(other.guid) }
+	, time { std::move(other.time) }
+	, bin { std::move(other.bin) }
+	, stream { std::move(other.stream) }
+{
+}
+
+PropValueInput& PropValueInput::operator=(const PropValueInput& other)
+{
+	PropValueInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+PropValueInput& PropValueInput::operator=(PropValueInput&& other) noexcept
+{
+	integer = std::move(other.integer);
+	boolean = std::move(other.boolean);
+	string = std::move(other.string);
+	guid = std::move(other.guid);
+	time = std::move(other.time);
+	bin = std::move(other.bin);
+	stream = std::move(other.stream);
+
+	return *this;
+}
+
+CreateItemInput::CreateItemInput(
+		ObjectId folderIdArg,
+		std::string subjectArg,
+		std::optional<response::IdType> conversationIdArg,
+		bool readArg,
+		std::optional<response::Value> receivedArg,
+		std::optional<response::Value> modifiedArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg) noexcept
+	: folderId { std::move(folderIdArg) }
+	, subject { std::move(subjectArg) }
+	, conversationId { std::move(conversationIdArg) }
+	, read { std::move(readArg) }
+	, received { std::move(receivedArg) }
+	, modified { std::move(modifiedArg) }
+	, properties { std::move(propertiesArg) }
+{
+}
+
+CreateItemInput::CreateItemInput(const CreateItemInput& other)
+	: folderId { service::ModifiedArgument<ObjectId>::duplicate(other.folderId) }
+	, subject { service::ModifiedArgument<std::string>::duplicate(other.subject) }
+	, conversationId { service::ModifiedArgument<response::IdType>::duplicate<service::TypeModifier::Nullable>(other.conversationId) }
+	, read { service::ModifiedArgument<bool>::duplicate(other.read) }
+	, received { service::ModifiedArgument<response::Value>::duplicate<service::TypeModifier::Nullable>(other.received) }
+	, modified { service::ModifiedArgument<response::Value>::duplicate<service::TypeModifier::Nullable>(other.modified) }
+	, properties { service::ModifiedArgument<PropertyInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.properties) }
+{
+}
+
+CreateItemInput::CreateItemInput(CreateItemInput&& other) noexcept
+	: folderId { std::move(other.folderId) }
+	, subject { std::move(other.subject) }
+	, conversationId { std::move(other.conversationId) }
+	, read { std::move(other.read) }
+	, received { std::move(other.received) }
+	, modified { std::move(other.modified) }
+	, properties { std::move(other.properties) }
+{
+}
+
+CreateItemInput& CreateItemInput::operator=(const CreateItemInput& other)
+{
+	CreateItemInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+CreateItemInput& CreateItemInput::operator=(CreateItemInput&& other) noexcept
+{
+	folderId = std::move(other.folderId);
+	subject = std::move(other.subject);
+	conversationId = std::move(other.conversationId);
+	read = std::move(other.read);
+	received = std::move(other.received);
+	modified = std::move(other.modified);
+	properties = std::move(other.properties);
+
+	return *this;
+}
+
+CreateSubFolderInput::CreateSubFolderInput(
+		ObjectId folderIdArg,
+		std::string nameArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg) noexcept
+	: folderId { std::move(folderIdArg) }
+	, name { std::move(nameArg) }
+	, properties { std::move(propertiesArg) }
+{
+}
+
+CreateSubFolderInput::CreateSubFolderInput(const CreateSubFolderInput& other)
+	: folderId { service::ModifiedArgument<ObjectId>::duplicate(other.folderId) }
+	, name { service::ModifiedArgument<std::string>::duplicate(other.name) }
+	, properties { service::ModifiedArgument<PropertyInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.properties) }
+{
+}
+
+CreateSubFolderInput::CreateSubFolderInput(CreateSubFolderInput&& other) noexcept
+	: folderId { std::move(other.folderId) }
+	, name { std::move(other.name) }
+	, properties { std::move(other.properties) }
+{
+}
+
+CreateSubFolderInput& CreateSubFolderInput::operator=(const CreateSubFolderInput& other)
+{
+	CreateSubFolderInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+CreateSubFolderInput& CreateSubFolderInput::operator=(CreateSubFolderInput&& other) noexcept
+{
+	folderId = std::move(other.folderId);
+	name = std::move(other.name);
+	properties = std::move(other.properties);
+
+	return *this;
+}
+
+ModifyItemInput::ModifyItemInput(
+		ObjectId idArg,
+		std::optional<std::string> subjectArg,
+		std::optional<bool> readArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg,
+		std::optional<std::vector<PropIdInput>> deletedArg) noexcept
+	: id { std::move(idArg) }
+	, subject { std::move(subjectArg) }
+	, read { std::move(readArg) }
+	, properties { std::move(propertiesArg) }
+	, deleted { std::move(deletedArg) }
+{
+}
+
+ModifyItemInput::ModifyItemInput(const ModifyItemInput& other)
+	: id { service::ModifiedArgument<ObjectId>::duplicate(other.id) }
+	, subject { service::ModifiedArgument<std::string>::duplicate<service::TypeModifier::Nullable>(other.subject) }
+	, read { service::ModifiedArgument<bool>::duplicate<service::TypeModifier::Nullable>(other.read) }
+	, properties { service::ModifiedArgument<PropertyInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.properties) }
+	, deleted { service::ModifiedArgument<PropIdInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.deleted) }
+{
+}
+
+ModifyItemInput::ModifyItemInput(ModifyItemInput&& other) noexcept
+	: id { std::move(other.id) }
+	, subject { std::move(other.subject) }
+	, read { std::move(other.read) }
+	, properties { std::move(other.properties) }
+	, deleted { std::move(other.deleted) }
+{
+}
+
+ModifyItemInput& ModifyItemInput::operator=(const ModifyItemInput& other)
+{
+	ModifyItemInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+ModifyItemInput& ModifyItemInput::operator=(ModifyItemInput&& other) noexcept
+{
+	id = std::move(other.id);
+	subject = std::move(other.subject);
+	read = std::move(other.read);
+	properties = std::move(other.properties);
+	deleted = std::move(other.deleted);
+
+	return *this;
+}
+
+ModifyFolderInput::ModifyFolderInput(
+		ObjectId folderIdArg,
+		std::optional<std::string> nameArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg,
+		std::optional<std::vector<PropIdInput>> deletedArg) noexcept
+	: folderId { std::move(folderIdArg) }
+	, name { std::move(nameArg) }
+	, properties { std::move(propertiesArg) }
+	, deleted { std::move(deletedArg) }
+{
+}
+
+ModifyFolderInput::ModifyFolderInput(const ModifyFolderInput& other)
+	: folderId { service::ModifiedArgument<ObjectId>::duplicate(other.folderId) }
+	, name { service::ModifiedArgument<std::string>::duplicate<service::TypeModifier::Nullable>(other.name) }
+	, properties { service::ModifiedArgument<PropertyInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.properties) }
+	, deleted { service::ModifiedArgument<PropIdInput>::duplicate<service::TypeModifier::Nullable, service::TypeModifier::List>(other.deleted) }
+{
+}
+
+ModifyFolderInput::ModifyFolderInput(ModifyFolderInput&& other) noexcept
+	: folderId { std::move(other.folderId) }
+	, name { std::move(other.name) }
+	, properties { std::move(other.properties) }
+	, deleted { std::move(other.deleted) }
+{
+}
+
+ModifyFolderInput& ModifyFolderInput::operator=(const ModifyFolderInput& other)
+{
+	ModifyFolderInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+ModifyFolderInput& ModifyFolderInput::operator=(ModifyFolderInput&& other) noexcept
+{
+	folderId = std::move(other.folderId);
+	name = std::move(other.name);
+	properties = std::move(other.properties);
+	deleted = std::move(other.deleted);
+
+	return *this;
+}
+
+MultipleItemsInput::MultipleItemsInput(
+		ObjectId folderIdArg,
+		std::vector<response::IdType> itemIdsArg) noexcept
+	: folderId { std::move(folderIdArg) }
+	, itemIds { std::move(itemIdsArg) }
+{
+}
+
+MultipleItemsInput::MultipleItemsInput(const MultipleItemsInput& other)
+	: folderId { service::ModifiedArgument<ObjectId>::duplicate(other.folderId) }
+	, itemIds { service::ModifiedArgument<response::IdType>::duplicate<service::TypeModifier::List>(other.itemIds) }
+{
+}
+
+MultipleItemsInput::MultipleItemsInput(MultipleItemsInput&& other) noexcept
+	: folderId { std::move(other.folderId) }
+	, itemIds { std::move(other.itemIds) }
+{
+}
+
+MultipleItemsInput& MultipleItemsInput::operator=(const MultipleItemsInput& other)
+{
+	MultipleItemsInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+MultipleItemsInput& MultipleItemsInput::operator=(MultipleItemsInput&& other) noexcept
+{
+	folderId = std::move(other.folderId);
+	itemIds = std::move(other.itemIds);
+
+	return *this;
+}
+
+PropertyInput::PropertyInput(
+		PropIdInput idArg,
+		PropValueInput valueArg) noexcept
+	: id { std::move(idArg) }
+	, value { std::move(valueArg) }
+{
+}
+
+PropertyInput::PropertyInput(const PropertyInput& other)
+	: id { service::ModifiedArgument<PropIdInput>::duplicate(other.id) }
+	, value { service::ModifiedArgument<PropValueInput>::duplicate(other.value) }
+{
+}
+
+PropertyInput::PropertyInput(PropertyInput&& other) noexcept
+	: id { std::move(other.id) }
+	, value { std::move(other.value) }
+{
+}
+
+PropertyInput& PropertyInput::operator=(const PropertyInput& other)
+{
+	PropertyInput value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+PropertyInput& PropertyInput::operator=(PropertyInput&& other) noexcept
+{
+	id = std::move(other.id);
+	value = std::move(other.value);
+
+	return *this;
+}
+
+Order::Order(
+		bool descendingArg,
+		PropIdInput propertyArg,
+		PropType typeArg) noexcept
+	: descending { std::move(descendingArg) }
+	, property { std::move(propertyArg) }
+	, type { std::move(typeArg) }
+{
+}
+
+Order::Order(const Order& other)
+	: descending { service::ModifiedArgument<bool>::duplicate(other.descending) }
+	, property { service::ModifiedArgument<PropIdInput>::duplicate(other.property) }
+	, type { service::ModifiedArgument<PropType>::duplicate(other.type) }
+{
+}
+
+Order::Order(Order&& other) noexcept
+	: descending { std::move(other.descending) }
+	, property { std::move(other.property) }
+	, type { std::move(other.type) }
+{
+}
+
+Order& Order::operator=(const Order& other)
+{
+	Order value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+Order& Order::operator=(Order&& other) noexcept
+{
+	descending = std::move(other.descending);
+	property = std::move(other.property);
+	type = std::move(other.type);
+
+	return *this;
+}
+
+Column::Column(
+		PropIdInput propertyArg,
+		PropType typeArg) noexcept
+	: property { std::move(propertyArg) }
+	, type { std::move(typeArg) }
+{
+}
+
+Column::Column(const Column& other)
+	: property { service::ModifiedArgument<PropIdInput>::duplicate(other.property) }
+	, type { service::ModifiedArgument<PropType>::duplicate(other.type) }
+{
+}
+
+Column::Column(Column&& other) noexcept
+	: property { std::move(other.property) }
+	, type { std::move(other.type) }
+{
+}
+
+Column& Column::operator=(const Column& other)
+{
+	Column value { other };
+
+	std::swap(*this, value);
+
+	return *this;
+}
+
+Column& Column::operator=(Column&& other) noexcept
+{
+	property = std::move(other.property);
+	type = std::move(other.type);
+
+	return *this;
+}
+
 Operations::Operations(std::shared_ptr<object::Query> query, std::shared_ptr<object::Mutation> mutation, std::shared_ptr<object::Subscription> subscription)
 	: service::Request({
-		{ "query", query },
-		{ "mutation", mutation },
-		{ "subscription", subscription }
+		{ service::strQuery, query },
+		{ service::strMutation, mutation },
+		{ service::strSubscription, subscription }
 	}, GetSchema())
 	, _query(std::move(query))
 	, _mutation(std::move(mutation))
@@ -381,18 +908,10 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(ObjectId)gql"sv, typeObjectId);
 	auto typeNamedPropInput = schema::InputObjectType::Make(R"gql(NamedPropInput)gql"sv, R"md(Named property ID description)md"sv);
 	schema->AddType(R"gql(NamedPropInput)gql"sv, typeNamedPropInput);
-	auto typePropValueInput = schema::InputObjectType::Make(R"gql(PropValueInput)gql"sv, R"md(Property value variant type)md"sv);
-	schema->AddType(R"gql(PropValueInput)gql"sv, typePropValueInput);
-	auto typeMultipleItemsInput = schema::InputObjectType::Make(R"gql(MultipleItemsInput)gql"sv, R"md(Properties which can be used to identify multiple items in the same folder for bulk operations)md"sv);
-	schema->AddType(R"gql(MultipleItemsInput)gql"sv, typeMultipleItemsInput);
 	auto typePropIdInput = schema::InputObjectType::Make(R"gql(PropIdInput)gql"sv, R"md(Property ID for either a built-in or named property)md"sv);
 	schema->AddType(R"gql(PropIdInput)gql"sv, typePropIdInput);
-	auto typePropertyInput = schema::InputObjectType::Make(R"gql(PropertyInput)gql"sv, R"md(Complete property type used for setting properties on items or folders)md"sv);
-	schema->AddType(R"gql(PropertyInput)gql"sv, typePropertyInput);
-	auto typeOrder = schema::InputObjectType::Make(R"gql(Order)gql"sv, R"md(Sort in ascending or descending order based on a single property.)md"sv);
-	schema->AddType(R"gql(Order)gql"sv, typeOrder);
-	auto typeColumn = schema::InputObjectType::Make(R"gql(Column)gql"sv, R"md(Add a column to the columns property on an object collection.)md"sv);
-	schema->AddType(R"gql(Column)gql"sv, typeColumn);
+	auto typePropValueInput = schema::InputObjectType::Make(R"gql(PropValueInput)gql"sv, R"md(Property value variant type)md"sv);
+	schema->AddType(R"gql(PropValueInput)gql"sv, typePropValueInput);
 	auto typeCreateItemInput = schema::InputObjectType::Make(R"gql(CreateItemInput)gql"sv, R"md(Properties which can be used to create a new item)md"sv);
 	schema->AddType(R"gql(CreateItemInput)gql"sv, typeCreateItemInput);
 	auto typeCreateSubFolderInput = schema::InputObjectType::Make(R"gql(CreateSubFolderInput)gql"sv, R"md(Properties which can be used to create a new sub-folder)md"sv);
@@ -401,6 +920,14 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 	schema->AddType(R"gql(ModifyItemInput)gql"sv, typeModifyItemInput);
 	auto typeModifyFolderInput = schema::InputObjectType::Make(R"gql(ModifyFolderInput)gql"sv, R"md(Properties which can be used to modify an existing folder)md"sv);
 	schema->AddType(R"gql(ModifyFolderInput)gql"sv, typeModifyFolderInput);
+	auto typeMultipleItemsInput = schema::InputObjectType::Make(R"gql(MultipleItemsInput)gql"sv, R"md(Properties which can be used to identify multiple items in the same folder for bulk operations)md"sv);
+	schema->AddType(R"gql(MultipleItemsInput)gql"sv, typeMultipleItemsInput);
+	auto typePropertyInput = schema::InputObjectType::Make(R"gql(PropertyInput)gql"sv, R"md(Complete property type used for setting properties on items or folders)md"sv);
+	schema->AddType(R"gql(PropertyInput)gql"sv, typePropertyInput);
+	auto typeOrder = schema::InputObjectType::Make(R"gql(Order)gql"sv, R"md(Sort in ascending or descending order based on a single property.)md"sv);
+	schema->AddType(R"gql(Order)gql"sv, typeOrder);
+	auto typeColumn = schema::InputObjectType::Make(R"gql(Column)gql"sv, R"md(Add a column to the columns property on an object collection.)md"sv);
+	schema->AddType(R"gql(Column)gql"sv, typeColumn);
 	auto typeAttachment = schema::UnionType::Make(R"gql(Attachment)gql"sv, R"md(Attachments can be either a file or another item.)md"sv);
 	schema->AddType(R"gql(Attachment)gql"sv, typeAttachment);
 	auto typeNamedPropId = schema::UnionType::Make(R"gql(NamedPropId)gql"sv, R"md()md"sv);
@@ -499,6 +1026,10 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Integer ID, mutually exclusive with `name`)md"sv, schema->LookupType(R"gql(Int)gql"sv), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(name)gql"sv, R"md(String name, mutually exclusive with `id`)md"sv, schema->LookupType(R"gql(String)gql"sv), R"gql()gql"sv)
 	});
+	typePropIdInput->AddInputValues({
+		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Built-in property ID, mutually exclusive with `named`)md"sv, schema->LookupType(R"gql(Int)gql"sv), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(named)gql"sv, R"md(Named property ID, mutually exclusive with `id`)md"sv, schema->LookupType(R"gql(NamedPropInput)gql"sv), R"gql()gql"sv)
+	});
 	typePropValueInput->AddInputValues({
 		schema::InputValue::Make(R"gql(integer)gql"sv, R"md(Integer value, mutually exclusive with all other fields)md"sv, schema->LookupType(R"gql(Int)gql"sv), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(boolean)gql"sv, R"md(Boolean value, mutually exclusive with all other fields)md"sv, schema->LookupType(R"gql(Boolean)gql"sv), R"gql()gql"sv),
@@ -507,27 +1038,6 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::InputValue::Make(R"gql(time)gql"sv, R"md(DateTime value, mutually exclusive with all other fields)md"sv, schema->LookupType(R"gql(DateTime)gql"sv), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(bin)gql"sv, R"md(Binary value, mutually exclusive with all other fields)md"sv, schema->LookupType(R"gql(ID)gql"sv), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(stream)gql"sv, R"md(Stream value, mutually exclusive with all other fields)md"sv, schema->LookupType(R"gql(Stream)gql"sv), R"gql()gql"sv)
-	});
-	typeMultipleItemsInput->AddInputValues({
-		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Parent folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(ObjectId)gql"sv)), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(itemIds)gql"sv, R"md(List of item IDs on which to perform the bulk operation)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(ID)gql"sv)))), R"gql()gql"sv)
-	});
-	typePropIdInput->AddInputValues({
-		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Built-in property ID, mutually exclusive with `named`)md"sv, schema->LookupType(R"gql(Int)gql"sv), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(named)gql"sv, R"md(Named property ID, mutually exclusive with `id`)md"sv, schema->LookupType(R"gql(NamedPropInput)gql"sv), R"gql()gql"sv)
-	});
-	typePropertyInput->AddInputValues({
-		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Property ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(value)gql"sv, R"md(Property value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropValueInput)gql"sv)), R"gql()gql"sv)
-	});
-	typeOrder->AddInputValues({
-		schema::InputValue::Make(R"gql(descending)gql"sv, R"md(True if the property values should be sorted in descending order, false if they should be sorted in ascending order (default))md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Boolean)gql"sv)), R"gql(false)gql"sv),
-		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropType)gql"sv)), R"gql()gql"sv)
-	});
-	typeColumn->AddInputValues({
-		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
-		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropType)gql"sv)), R"gql()gql"sv)
 	});
 	typeCreateItemInput->AddInputValues({
 		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Target folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(ObjectId)gql"sv)), R"gql()gql"sv),
@@ -555,6 +1065,23 @@ void AddTypesToSchema(const std::shared_ptr<schema::Schema>& schema)
 		schema::InputValue::Make(R"gql(name)gql"sv, R"md(Optionally rename the folder)md"sv, schema->LookupType(R"gql(String)gql"sv), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(properties)gql"sv, R"md(List of properties to set/overwrite on the existing folder)md"sv, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropertyInput)gql"sv))), R"gql()gql"sv),
 		schema::InputValue::Make(R"gql(deleted)gql"sv, R"md(List of properties to remove from the existing folder)md"sv, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv))), R"gql()gql"sv)
+	});
+	typeMultipleItemsInput->AddInputValues({
+		schema::InputValue::Make(R"gql(folderId)gql"sv, R"md(Parent folder ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(ObjectId)gql"sv)), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(itemIds)gql"sv, R"md(List of item IDs on which to perform the bulk operation)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->WrapType(introspection::TypeKind::LIST, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(ID)gql"sv)))), R"gql()gql"sv)
+	});
+	typePropertyInput->AddInputValues({
+		schema::InputValue::Make(R"gql(id)gql"sv, R"md(Property ID)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(value)gql"sv, R"md(Property value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropValueInput)gql"sv)), R"gql()gql"sv)
+	});
+	typeOrder->AddInputValues({
+		schema::InputValue::Make(R"gql(descending)gql"sv, R"md(True if the property values should be sorted in descending order, false if they should be sorted in ascending order (default))md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Boolean)gql"sv)), R"gql(false)gql"sv),
+		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropType)gql"sv)), R"gql()gql"sv)
+	});
+	typeColumn->AddInputValues({
+		schema::InputValue::Make(R"gql(property)gql"sv, R"md(Property ID of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropIdInput)gql"sv)), R"gql()gql"sv),
+		schema::InputValue::Make(R"gql(type)gql"sv, R"md(Expected type of the sorted value)md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(PropType)gql"sv)), R"gql()gql"sv)
 	});
 
 	AddAttachmentDetails(typeAttachment, schema);
