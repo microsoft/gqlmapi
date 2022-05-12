@@ -10,9 +10,9 @@
 
 #include "graphqlservice/internal/Schema.h"
 
-// Check if the library version is compatible with schemagen 4.3.0
+// Check if the library version is compatible with schemagen 4.4.0
 static_assert(graphql::internal::MajorVersion == 4, "regenerate with schemagen: major version mismatch");
-static_assert(graphql::internal::MinorVersion == 3, "regenerate with schemagen: minor version mismatch");
+static_assert(graphql::internal::MinorVersion == 4, "regenerate with schemagen: minor version mismatch");
 
 #include <array>
 #include <memory>
@@ -430,82 +430,6 @@ void AddFoldersReloadedDetails(const std::shared_ptr<schema::ObjectType>& typeFo
 std::shared_ptr<schema::Schema> GetSchema();
 
 } // namespace mapi
-
-namespace service {
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::ObjectId>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::NamedPropInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::PropIdInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::PropValueInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::CreateItemInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::CreateSubFolderInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::ModifyItemInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::ModifyFolderInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::MultipleItemsInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::PropertyInput>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::Order>() noexcept
-{
-	return true;
-}
-
-template <>
-[[nodiscard]] constexpr bool isInputType<mapi::Column>() noexcept
-{
-	return true;
-}
-
-} // namespace service
 } // namespace graphql
 
 #endif // MAPISCHEMA_H
