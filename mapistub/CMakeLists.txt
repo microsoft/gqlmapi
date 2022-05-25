@@ -4,8 +4,8 @@
 # Fetch the https://github.com/stephenegriffin/MAPIStubLibrary repository.
 include(FetchContent)
 FetchContent_Declare(MAPIStubLibrary
-  GIT_REPOSITORY "https://github.com/stephenegriffin/MAPIStubLibrary"
-  GIT_TAG "01f9bf8cd2ac39078aabfc4662c873159efd75d6"
+  GIT_REPOSITORY "https://github.com/wravery/MAPIStubLibrary"
+  GIT_TAG "87dbfba2d44302736933e9e6cd8787995568de27"
   GIT_PROGRESS TRUE)
 FetchContent_GetProperties(MAPIStubLibrary)
 if(NOT mapistublibrary_POPULATED)

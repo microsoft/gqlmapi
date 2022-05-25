@@ -13,4 +13,3 @@ add_library(mapistub STATIC
 target_include_directories(mapistub
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../library>)
-target_compile_definitions(mapistub PRIVATE WIN_NOEXCEPT)
