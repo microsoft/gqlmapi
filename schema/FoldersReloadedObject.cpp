@@ -65,7 +65,7 @@ service::AwaitableResolver FoldersReloaded::resolveReloaded(service::ResolverPar
 
 service::AwaitableResolver FoldersReloaded::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(FoldersReloaded)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(FoldersReloaded)gql" }, std::move(params));
 }
 
 } // namespace object

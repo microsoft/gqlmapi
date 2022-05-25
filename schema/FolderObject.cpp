@@ -181,7 +181,7 @@ service::AwaitableResolver Folder::resolveItems(service::ResolverParams&& params
 
 service::AwaitableResolver Folder::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(Folder)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(Folder)gql" }, std::move(params));
 }
 
 } // namespace object

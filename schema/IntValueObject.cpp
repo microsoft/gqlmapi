@@ -64,7 +64,7 @@ service::AwaitableResolver IntValue::resolveValue(service::ResolverParams&& para
 
 service::AwaitableResolver IntValue::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(IntValue)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(IntValue)gql" }, std::move(params));
 }
 
 } // namespace object

@@ -421,7 +421,7 @@ void Subscription::RegisterAdviseSinkProxy(service::await_async launch, std::str
 				}
 
 				const auto matchValue =
-					service::ModifiedArgument<ArgumentType>::convert(required.second);
+					service::Argument<ArgumentType>::convert(required.second);
 
 				return matchValue == argumentValue;
 			};

@@ -120,7 +120,7 @@ service::AwaitableResolver Conversation::resolveItems(service::ResolverParams&& 
 
 service::AwaitableResolver Conversation::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(Conversation)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(Conversation)gql" }, std::move(params));
 }
 
 } // namespace object

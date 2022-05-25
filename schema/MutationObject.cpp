@@ -209,7 +209,7 @@ service::AwaitableResolver Mutation::resolveDeleteItems(service::ResolverParams&
 
 service::AwaitableResolver Mutation::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(Mutation)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(Mutation)gql" }, std::move(params));
 }
 
 } // namespace object

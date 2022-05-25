@@ -76,7 +76,7 @@ service::AwaitableResolver Property::resolveValue(service::ResolverParams&& para
 
 service::AwaitableResolver Property::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(Property)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(Property)gql" }, std::move(params));
 }
 
 } // namespace object

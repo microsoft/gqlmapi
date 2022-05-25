@@ -29,7 +29,7 @@ static const auto s_namesSpecialFolder = mapi::getSpecialFolderNames();
 static const auto s_valuesSpecialFolder = mapi::getSpecialFolderValues();
 
 template <>
-mapi::SpecialFolder ModifiedArgument<mapi::SpecialFolder>::convert(const response::Value& value)
+mapi::SpecialFolder Argument<mapi::SpecialFolder>::convert(const response::Value& value)
 {
 	if (!value.maybe_enum())
 	{
@@ -49,9 +49,9 @@ mapi::SpecialFolder ModifiedArgument<mapi::SpecialFolder>::convert(const respons
 }
 
 template <>
-service::AwaitableResolver ModifiedResult<mapi::SpecialFolder>::convert(service::AwaitableScalar<mapi::SpecialFolder> result, ResolverParams params)
+service::AwaitableResolver Result<mapi::SpecialFolder>::convert(service::AwaitableScalar<mapi::SpecialFolder> result, ResolverParams params)
 {
-	return resolve(std::move(result), std::move(params),
+	return ModifiedResult<mapi::SpecialFolder>::resolve(std::move(result), std::move(params),
 		[](mapi::SpecialFolder value, const ResolverParams&)
 		{
 			response::Value result(response::Type::EnumValue);
@@ -63,7 +63,7 @@ service::AwaitableResolver ModifiedResult<mapi::SpecialFolder>::convert(service:
 }
 
 template <>
-void ModifiedResult<mapi::SpecialFolder>::validateScalar(const response::Value& value)
+void Result<mapi::SpecialFolder>::validateScalar(const response::Value& value)
 {
 	if (!value.maybe_enum())
 	{
@@ -85,7 +85,7 @@ static const auto s_namesPropType = mapi::getPropTypeNames();
 static const auto s_valuesPropType = mapi::getPropTypeValues();
 
 template <>
-mapi::PropType ModifiedArgument<mapi::PropType>::convert(const response::Value& value)
+mapi::PropType Argument<mapi::PropType>::convert(const response::Value& value)
 {
 	if (!value.maybe_enum())
 	{
@@ -105,9 +105,9 @@ mapi::PropType ModifiedArgument<mapi::PropType>::convert(const response::Value& 
 }
 
 template <>
-service::AwaitableResolver ModifiedResult<mapi::PropType>::convert(service::AwaitableScalar<mapi::PropType> result, ResolverParams params)
+service::AwaitableResolver Result<mapi::PropType>::convert(service::AwaitableScalar<mapi::PropType> result, ResolverParams params)
 {
-	return resolve(std::move(result), std::move(params),
+	return ModifiedResult<mapi::PropType>::resolve(std::move(result), std::move(params),
 		[](mapi::PropType value, const ResolverParams&)
 		{
 			response::Value result(response::Type::EnumValue);
@@ -119,7 +119,7 @@ service::AwaitableResolver ModifiedResult<mapi::PropType>::convert(service::Awai
 }
 
 template <>
-void ModifiedResult<mapi::PropType>::validateScalar(const response::Value& value)
+void Result<mapi::PropType>::validateScalar(const response::Value& value)
 {
 	if (!value.maybe_enum())
 	{
@@ -138,7 +138,7 @@ void ModifiedResult<mapi::PropType>::validateScalar(const response::Value& value
 }
 
 template <>
-mapi::ObjectId ModifiedArgument<mapi::ObjectId>::convert(const response::Value& value)
+mapi::ObjectId Argument<mapi::ObjectId>::convert(const response::Value& value)
 {
 	auto valueStoreId = service::ModifiedArgument<response::IdType>::require("storeId", value);
 	auto valueObjectId = service::ModifiedArgument<response::IdType>::require("objectId", value);
@@ -150,7 +150,7 @@ mapi::ObjectId ModifiedArgument<mapi::ObjectId>::convert(const response::Value& 
 }
 
 template <>
-mapi::NamedPropInput ModifiedArgument<mapi::NamedPropInput>::convert(const response::Value& value)
+mapi::NamedPropInput Argument<mapi::NamedPropInput>::convert(const response::Value& value)
 {
 	auto valuePropset = service::ModifiedArgument<response::Value>::require("propset", value);
 	auto valueId = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("id", value);
@@ -164,7 +164,7 @@ mapi::NamedPropInput ModifiedArgument<mapi::NamedPropInput>::convert(const respo
 }
 
 template <>
-mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::Value& value)
+mapi::PropIdInput Argument<mapi::PropIdInput>::convert(const response::Value& value)
 {
 	auto valueId = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("id", value);
 	auto valueNamed = service::ModifiedArgument<mapi::NamedPropInput>::require<service::TypeModifier::Nullable>("named", value);
@@ -176,7 +176,7 @@ mapi::PropIdInput ModifiedArgument<mapi::PropIdInput>::convert(const response::V
 }
 
 template <>
-mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const response::Value& value)
+mapi::PropValueInput Argument<mapi::PropValueInput>::convert(const response::Value& value)
 {
 	auto valueInteger = service::ModifiedArgument<int>::require<service::TypeModifier::Nullable>("integer", value);
 	auto valueBoolean = service::ModifiedArgument<bool>::require<service::TypeModifier::Nullable>("boolean", value);
@@ -198,7 +198,7 @@ mapi::PropValueInput ModifiedArgument<mapi::PropValueInput>::convert(const respo
 }
 
 template <>
-mapi::CreateItemInput ModifiedArgument<mapi::CreateItemInput>::convert(const response::Value& value)
+mapi::CreateItemInput Argument<mapi::CreateItemInput>::convert(const response::Value& value)
 {
 	const auto defaultValue = []()
 	{
@@ -234,7 +234,7 @@ mapi::CreateItemInput ModifiedArgument<mapi::CreateItemInput>::convert(const res
 }
 
 template <>
-mapi::CreateSubFolderInput ModifiedArgument<mapi::CreateSubFolderInput>::convert(const response::Value& value)
+mapi::CreateSubFolderInput Argument<mapi::CreateSubFolderInput>::convert(const response::Value& value)
 {
 	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
 	auto valueName = service::ModifiedArgument<std::string>::require("name", value);
@@ -248,7 +248,7 @@ mapi::CreateSubFolderInput ModifiedArgument<mapi::CreateSubFolderInput>::convert
 }
 
 template <>
-mapi::ModifyItemInput ModifiedArgument<mapi::ModifyItemInput>::convert(const response::Value& value)
+mapi::ModifyItemInput Argument<mapi::ModifyItemInput>::convert(const response::Value& value)
 {
 	auto valueId = service::ModifiedArgument<mapi::ObjectId>::require("id", value);
 	auto valueSubject = service::ModifiedArgument<std::string>::require<service::TypeModifier::Nullable>("subject", value);
@@ -266,7 +266,7 @@ mapi::ModifyItemInput ModifiedArgument<mapi::ModifyItemInput>::convert(const res
 }
 
 template <>
-mapi::ModifyFolderInput ModifiedArgument<mapi::ModifyFolderInput>::convert(const response::Value& value)
+mapi::ModifyFolderInput Argument<mapi::ModifyFolderInput>::convert(const response::Value& value)
 {
 	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
 	auto valueName = service::ModifiedArgument<std::string>::require<service::TypeModifier::Nullable>("name", value);
@@ -282,7 +282,7 @@ mapi::ModifyFolderInput ModifiedArgument<mapi::ModifyFolderInput>::convert(const
 }
 
 template <>
-mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(const response::Value& value)
+mapi::MultipleItemsInput Argument<mapi::MultipleItemsInput>::convert(const response::Value& value)
 {
 	auto valueFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", value);
 	auto valueItemIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::List>("itemIds", value);
@@ -294,7 +294,7 @@ mapi::MultipleItemsInput ModifiedArgument<mapi::MultipleItemsInput>::convert(con
 }
 
 template <>
-mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const response::Value& value)
+mapi::PropertyInput Argument<mapi::PropertyInput>::convert(const response::Value& value)
 {
 	auto valueId = service::ModifiedArgument<mapi::PropIdInput>::require("id", value);
 	auto valueValue = service::ModifiedArgument<mapi::PropValueInput>::require("value", value);
@@ -306,7 +306,7 @@ mapi::PropertyInput ModifiedArgument<mapi::PropertyInput>::convert(const respons
 }
 
 template <>
-mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
+mapi::Order Argument<mapi::Order>::convert(const response::Value& value)
 {
 	const auto defaultValue = []()
 	{
@@ -334,7 +334,7 @@ mapi::Order ModifiedArgument<mapi::Order>::convert(const response::Value& value)
 }
 
 template <>
-mapi::Column ModifiedArgument<mapi::Column>::convert(const response::Value& value)
+mapi::Column Argument<mapi::Column>::convert(const response::Value& value)
 {
 	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
 	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);

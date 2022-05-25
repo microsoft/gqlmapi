@@ -76,7 +76,7 @@ service::AwaitableResolver FolderUpdated::resolveUpdated(service::ResolverParams
 
 service::AwaitableResolver FolderUpdated::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(FolderUpdated)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(FolderUpdated)gql" }, std::move(params));
 }
 
 } // namespace object

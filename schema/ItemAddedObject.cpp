@@ -76,7 +76,7 @@ service::AwaitableResolver ItemAdded::resolveAdded(service::ResolverParams&& par
 
 service::AwaitableResolver ItemAdded::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(ItemAdded)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(ItemAdded)gql" }, std::move(params));
 }
 
 } // namespace object

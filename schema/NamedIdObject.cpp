@@ -76,7 +76,7 @@ service::AwaitableResolver NamedId::resolveId(service::ResolverParams&& params) 
 
 service::AwaitableResolver NamedId::resolve_typename(service::ResolverParams&& params) const
 {
-	return service::ModifiedResult<std::string>::convert(std::string{ R"gql(NamedId)gql" }, std::move(params));
+	return service::Result<std::string>::convert(std::string{ R"gql(NamedId)gql" }, std::move(params));
 }
 
 } // namespace object
