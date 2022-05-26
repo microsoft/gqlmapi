@@ -14,6 +14,7 @@ gtest_discover_tests(schemaTest)
 add_executable(convertTest
   UnicodeTest.cpp
   DateTimeTest.cpp
-  GuidTest.cpp)
+  GuidTest.cpp
+  InputTest.cpp)
 target_link_libraries(convertTest PRIVATE testShared)
 gtest_discover_tests(convertTest)

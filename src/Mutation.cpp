@@ -3,6 +3,7 @@
 
 #include "DateTime.h"
 #include "Guid.h"
+#include "Input.h"
 #include "Types.h"
 #include "Unicode.h"
 
@@ -44,6 +45,9 @@ mapi_ptr<ENTRYLIST> ExtractEntryList(const std::vector<response::IdType>& itemId
 
 bool Mutation::CopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg, bool moveItems)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+	destinationArg = convert::input::from_input(std::move(destinationArg));
+
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
 	auto store = m_query->lookup(storeId);
@@ -82,6 +86,8 @@ void Mutation::endSelectionSet(const service::SelectionSetParams&)
 
 std::shared_ptr<object::Item> Mutation::applyCreateItem(CreateItemInput&& inputArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
 	auto store = m_query->lookup(storeId);
@@ -423,6 +429,8 @@ std::shared_ptr<object::Folder> Mutation::applyModifyFolder(ModifyFolderInput&& 
 
 bool Mutation::applyRemoveFolder(ObjectId&& inputArg, bool hardDeleteArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+
 	auto storeId = std::move(inputArg.storeId);
 	auto folderId = std::move(inputArg.objectId);
 	auto store = m_query->lookup(storeId);
@@ -466,6 +474,8 @@ bool Mutation::applyRemoveFolder(ObjectId&& inputArg, bool hardDeleteArg)
 
 bool Mutation::applyMarkAsRead(MultipleItemsInput&& inputArg, bool readArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+
 	auto storeId = std::move(inputArg.folderId.storeId);
 	auto folderId = std::move(inputArg.folderId.objectId);
 	auto store = m_query->lookup(storeId);
@@ -489,16 +499,24 @@ bool Mutation::applyMarkAsRead(MultipleItemsInput&& inputArg, bool readArg)
 
 bool Mutation::applyCopyItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+	destinationArg = convert::input::from_input(std::move(destinationArg));
+
 	return CopyItems(std::move(inputArg), std::move(destinationArg), false);
 }
 
 bool Mutation::applyMoveItems(MultipleItemsInput&& inputArg, ObjectId&& destinationArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+	destinationArg = convert::input::from_input(std::move(destinationArg));
+
 	return CopyItems(std::move(inputArg), std::move(destinationArg), true);
 }
 
 bool Mutation::applyDeleteItems(MultipleItemsInput&& inputArg, bool hardDeleteArg)
 {
+	inputArg = convert::input::from_input(std::move(inputArg));
+
 	if (!hardDeleteArg)
 	{
 		auto store = m_query->lookup(inputArg.folderId.storeId);

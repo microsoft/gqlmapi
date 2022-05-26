@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 #include "Guid.h"
+#include "Input.h"
 #include "Types.h"
 
 #include "FolderAddedObject.h"
@@ -41,7 +42,7 @@ void Subscription::setService(const std::shared_ptr<Operations>& service) noexce
 std::vector<std::shared_ptr<object::ItemChange>> Subscription::getItems(
 	service::FieldParams&& params, ObjectId&& folderIdArg)
 {
-	Registration<Item> registration { { std::move(folderIdArg),
+	Registration<Item> registration { { convert::input::from_input(std::move(folderIdArg)),
 		std::move(params.fieldDirectives) } };
 	const auto [itr, itrEnd] = m_itemSinks.equal_range(registration);
 
@@ -86,7 +87,7 @@ std::vector<std::shared_ptr<object::ItemChange>> Subscription::getItems(
 std::vector<std::shared_ptr<object::FolderChange>> Subscription::getSubFolders(
 	service::FieldParams&& params, ObjectId&& parentFolderIdArg)
 {
-	Registration<Folder> registration { { std::move(parentFolderIdArg),
+	Registration<Folder> registration { { convert::input::from_input(std::move(parentFolderIdArg)),
 		std::move(params.fieldDirectives) } };
 	const auto [itr, itrEnd] = m_subFolderSinks.equal_range(registration);
 
@@ -131,8 +132,10 @@ std::vector<std::shared_ptr<object::FolderChange>> Subscription::getSubFolders(
 std::vector<std::shared_ptr<object::FolderChange>> Subscription::getRootFolders(
 	service::FieldParams&& params, response::IdType&& storeIdArg)
 {
-	Registration<Folder> registration { { ObjectId { std::move(storeIdArg), {} },
-		std::move(params.fieldDirectives) } };
+	Registration<Folder> registration {
+		{ ObjectId { convert::input::from_input(std::move(storeIdArg)), {} },
+			std::move(params.fieldDirectives) }
+	};
 	const auto [itr, itrEnd] = m_rootFolderSinks.equal_range(registration);
 
 	switch (params.resolverContext)
@@ -420,8 +423,7 @@ void Subscription::RegisterAdviseSinkProxy(service::await_async launch, std::str
 					return false;
 				}
 
-				const auto matchValue =
-					service::Argument<ArgumentType>::convert(required.second);
+				const auto matchValue = service::Argument<ArgumentType>::convert(required.second);
 
 				return matchValue == argumentValue;
 			};

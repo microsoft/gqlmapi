@@ -3,6 +3,7 @@
 
 #include "DateTime.h"
 #include "Guid.h"
+#include "Input.h"
 #include "Types.h"
 
 #include "FolderObject.h"
@@ -1138,7 +1139,7 @@ std::vector<std::shared_ptr<object::Folder>> Store::getSpecialFolders(
 std::vector<std::shared_ptr<object::Property>> Store::getFolderProperties(
 	response::IdType&& folderIdArg, std::optional<std::vector<Column>>&& idsArg)
 {
-	auto folder = OpenFolder(folderIdArg);
+	auto folder = OpenFolder(convert::input::from_input(std::move(folderIdArg)));
 
 	CFRt(folder != nullptr);
 	return { GetProperties(static_cast<IMAPIFolder*>(folder->folder()), std::move(idsArg)) };
@@ -1147,7 +1148,7 @@ std::vector<std::shared_ptr<object::Property>> Store::getFolderProperties(
 std::vector<std::shared_ptr<object::Property>> Store::getItemProperties(
 	response::IdType&& itemIdArg, std::optional<std::vector<Column>>&& idsArg)
 {
-	auto item = OpenItem(itemIdArg);
+	auto item = OpenItem(convert::input::from_input(std::move(itemIdArg)));
 
 	CFRt(item != nullptr);
 	return { GetProperties(static_cast<IMessage*>(item->message()), std::move(idsArg)) };

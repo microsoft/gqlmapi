@@ -15,6 +15,7 @@ add_library(gqlmapiCommon STATIC
   IntId.cpp
   NamedId.cpp
   StringId.cpp
+  Input.cpp
   IntValue.cpp
   BoolValue.cpp
   StringValue.cpp
