@@ -1,0 +1,8 @@
+{
+  "name": "qglmapi",
+  "version-semver": "1.0.0",
+  "dependencies": [
+    "cppgraphqlgen",
+    "gtest"
+  ]
+}
