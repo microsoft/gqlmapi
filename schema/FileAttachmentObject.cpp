@@ -21,7 +21,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-FileAttachment::FileAttachment(std::unique_ptr<const Concept>&& pimpl) noexcept
+FileAttachment::FileAttachment(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -59,8 +59,9 @@ void FileAttachment::endSelectionSet(const service::SelectionSetParams& params) 
 service::AwaitableResolver FileAttachment::resolveId(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getId(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getId(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<response::IdType>::convert(std::move(result), std::move(params));
@@ -69,8 +70,9 @@ service::AwaitableResolver FileAttachment::resolveId(service::ResolverParams&& p
 service::AwaitableResolver FileAttachment::resolveName(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getName(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getName(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<std::string>::convert(std::move(result), std::move(params));
@@ -79,8 +81,9 @@ service::AwaitableResolver FileAttachment::resolveName(service::ResolverParams&&
 service::AwaitableResolver FileAttachment::resolveContents(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getContents(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getContents(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<response::Value>::convert<service::TypeModifier::Nullable>(std::move(result), std::move(params));
@@ -90,8 +93,9 @@ service::AwaitableResolver FileAttachment::resolveProperties(service::ResolverPa
 {
 	auto argIds = service::ModifiedArgument<mapi::PropIdInput>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getProperties(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argIds));
+	auto result = _pimpl->getProperties(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Property>::convert<service::TypeModifier::List, service::TypeModifier::Nullable>(std::move(result), std::move(params));

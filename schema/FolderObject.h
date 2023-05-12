@@ -159,54 +159,54 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::FolderHas
 
-class [[nodiscard]] Folder final
+class [[nodiscard("unnecessary construction")]] Folder final
 	: public service::Object
 {
 private:
-	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveParentFolder(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveStore(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveCount(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveUnread(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveSpecialFolder(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveSubFolders(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveConversations(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveParentFolder(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveStore(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveCount(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveUnread(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveSpecialFolder(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveColumns(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveSubFolders(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveConversations(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveItems(service::ResolverParams&& params) const;
 
-	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct [[nodiscard]] Concept
+	struct [[nodiscard("unnecessary construction")]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Store>> getStore(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<int> getCount(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<std::optional<SpecialFolder>> getSpecialFolder(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSubFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Conversation>>> getConversations(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Store>> getStore(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<int> getCount(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<std::optional<SpecialFolder>> getSpecialFolder(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSubFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Conversation>>> getConversations(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct [[nodiscard]] Model
+	struct [[nodiscard("unnecessary construction")]] Model final
 		: Concept
 	{
-		Model(std::shared_ptr<T>&& pimpl) noexcept
+		explicit Model(std::shared_ptr<T> pimpl) noexcept
 			: _pimpl { std::move(pimpl) }
 		{
 		}
 
-		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getIdWithParams<T>)
 			{
@@ -218,11 +218,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getId is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getId)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Folder>> getParentFolder(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getParentFolderWithParams<T>)
 			{
@@ -234,11 +234,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getParentFolder is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getParentFolder)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Store>> getStore(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Store>> getStore(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getStoreWithParams<T>)
 			{
@@ -250,11 +250,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getStore is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getStore)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getNameWithParams<T>)
 			{
@@ -266,11 +266,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getName is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getName)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<int> getCount(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<int> getCount(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getCountWithParams<T>)
 			{
@@ -282,11 +282,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getCount is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getCount)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<int> getUnread(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getUnreadWithParams<T>)
 			{
@@ -298,11 +298,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getUnread is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getUnread)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<std::optional<SpecialFolder>> getSpecialFolder(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<std::optional<SpecialFolder>> getSpecialFolder(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getSpecialFolderWithParams<T>)
 			{
@@ -314,11 +314,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getSpecialFolder is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getSpecialFolder)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getColumns(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FolderHas::getColumnsWithParams<T>)
 			{
@@ -330,11 +330,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getColumns is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getColumns)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSubFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::vector<std::shared_ptr<Folder>>> getSubFolders(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override
 		{
 			if constexpr (methods::FolderHas::getSubFoldersWithParams<T>)
 			{
@@ -346,11 +346,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getSubFolders is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getSubFolders)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Conversation>>> getConversations(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::vector<std::shared_ptr<Conversation>>> getConversations(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override
 		{
 			if constexpr (methods::FolderHas::getConversationsWithParams<T>)
 			{
@@ -362,11 +362,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getConversations is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getConversations)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::vector<std::shared_ptr<Item>>> getItems(service::FieldParams&& params, std::optional<std::vector<response::IdType>>&& idsArg) const override
 		{
 			if constexpr (methods::FolderHas::getItemsWithParams<T>)
 			{
@@ -378,11 +378,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Folder::getItems is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Folder::getItems)ex");
 			}
 		}
 
-		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		void beginSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::FolderHas::beginSelectionSet<T>)
 			{
@@ -390,7 +390,7 @@ private:
 			}
 		}
 
-		void endSelectionSet(const service::SelectionSetParams& params) const final
+		void endSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::FolderHas::endSelectionSet<T>)
 			{
@@ -402,24 +402,24 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Folder(std::unique_ptr<const Concept>&& pimpl) noexcept;
+	explicit Folder(std::unique_ptr<const Concept> pimpl) noexcept;
 
-	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
-	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard("unnecessary call")]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard("unnecessary call")]] service::ResolverMap getResolvers() const noexcept;
 
-	void beginSelectionSet(const service::SelectionSetParams& params) const final;
-	void endSelectionSet(const service::SelectionSetParams& params) const final;
+	void beginSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params) const override;
 
 	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
-	Folder(std::shared_ptr<T> pimpl) noexcept
+	explicit Folder(std::shared_ptr<T> pimpl) noexcept
 		: Folder { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
 	}
 
-	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr std::string_view getObjectType() noexcept
 	{
 		return { R"gql(Folder)gql" };
 	}

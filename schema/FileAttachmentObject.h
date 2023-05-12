@@ -82,40 +82,40 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::FileAttachmentHas
 
-class [[nodiscard]] FileAttachment final
+class [[nodiscard("unnecessary construction")]] FileAttachment final
 	: public service::Object
 {
 private:
-	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveContents(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveProperties(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveName(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveContents(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveProperties(service::ResolverParams&& params) const;
 
-	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct [[nodiscard]] Concept
+	struct [[nodiscard("unnecessary construction")]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		[[nodiscard]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const = 0;
 	};
 
 	template <class T>
-	struct [[nodiscard]] Model
+	struct [[nodiscard("unnecessary construction")]] Model final
 		: Concept
 	{
-		Model(std::shared_ptr<T>&& pimpl) noexcept
+		explicit Model(std::shared_ptr<T> pimpl) noexcept
 			: _pimpl { std::move(pimpl) }
 		{
 		}
 
-		[[nodiscard]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<response::IdType> getId(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FileAttachmentHas::getIdWithParams<T>)
 			{
@@ -127,11 +127,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(FileAttachment::getId is not implemented)ex");
+				throw service::unimplemented_method(R"ex(FileAttachment::getId)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<std::string> getName(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FileAttachmentHas::getNameWithParams<T>)
 			{
@@ -143,11 +143,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(FileAttachment::getName is not implemented)ex");
+				throw service::unimplemented_method(R"ex(FileAttachment::getName)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<std::optional<response::Value>> getContents(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::FileAttachmentHas::getContentsWithParams<T>)
 			{
@@ -159,11 +159,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(FileAttachment::getContents is not implemented)ex");
+				throw service::unimplemented_method(R"ex(FileAttachment::getContents)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::vector<std::shared_ptr<Property>>> getProperties(service::FieldParams&& params, std::optional<std::vector<PropIdInput>>&& idsArg) const override
 		{
 			if constexpr (methods::FileAttachmentHas::getPropertiesWithParams<T>)
 			{
@@ -175,11 +175,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(FileAttachment::getProperties is not implemented)ex");
+				throw service::unimplemented_method(R"ex(FileAttachment::getProperties)ex");
 			}
 		}
 
-		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		void beginSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::FileAttachmentHas::beginSelectionSet<T>)
 			{
@@ -187,7 +187,7 @@ private:
 			}
 		}
 
-		void endSelectionSet(const service::SelectionSetParams& params) const final
+		void endSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::FileAttachmentHas::endSelectionSet<T>)
 			{
@@ -199,33 +199,33 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	FileAttachment(std::unique_ptr<const Concept>&& pimpl) noexcept;
+	explicit FileAttachment(std::unique_ptr<const Concept> pimpl) noexcept;
 
 	// Unions which include this type
 	friend Attachment;
 
 	template <class I>
-	[[nodiscard]] static constexpr bool implements() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr bool implements() noexcept
 	{
 		return implements::FileAttachmentIs<I>;
 	}
 
-	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
-	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard("unnecessary call")]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard("unnecessary call")]] service::ResolverMap getResolvers() const noexcept;
 
-	void beginSelectionSet(const service::SelectionSetParams& params) const final;
-	void endSelectionSet(const service::SelectionSetParams& params) const final;
+	void beginSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params) const override;
 
 	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
-	FileAttachment(std::shared_ptr<T> pimpl) noexcept
+	explicit FileAttachment(std::shared_ptr<T> pimpl) noexcept
 		: FileAttachment { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
 	}
 
-	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr std::string_view getObjectType() noexcept
 	{
 		return { R"gql(FileAttachment)gql" };
 	}

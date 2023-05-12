@@ -46,34 +46,34 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::IntIdHas
 
-class [[nodiscard]] IntId final
+class [[nodiscard("unnecessary construction")]] IntId final
 	: public service::Object
 {
 private:
-	[[nodiscard]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveId(service::ResolverParams&& params) const;
 
-	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct [[nodiscard]] Concept
+	struct [[nodiscard("unnecessary construction")]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		[[nodiscard]] virtual service::AwaitableScalar<int> getId(service::FieldParams&& params) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<int> getId(service::FieldParams&& params) const = 0;
 	};
 
 	template <class T>
-	struct [[nodiscard]] Model
+	struct [[nodiscard("unnecessary construction")]] Model final
 		: Concept
 	{
-		Model(std::shared_ptr<T>&& pimpl) noexcept
+		explicit Model(std::shared_ptr<T> pimpl) noexcept
 			: _pimpl { std::move(pimpl) }
 		{
 		}
 
-		[[nodiscard]] service::AwaitableScalar<int> getId(service::FieldParams&& params) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<int> getId(service::FieldParams&& params) const override
 		{
 			if constexpr (methods::IntIdHas::getIdWithParams<T>)
 			{
@@ -85,11 +85,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(IntId::getId is not implemented)ex");
+				throw service::unimplemented_method(R"ex(IntId::getId)ex");
 			}
 		}
 
-		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		void beginSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::IntIdHas::beginSelectionSet<T>)
 			{
@@ -97,7 +97,7 @@ private:
 			}
 		}
 
-		void endSelectionSet(const service::SelectionSetParams& params) const final
+		void endSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::IntIdHas::endSelectionSet<T>)
 			{
@@ -109,34 +109,34 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	IntId(std::unique_ptr<const Concept>&& pimpl) noexcept;
+	explicit IntId(std::unique_ptr<const Concept> pimpl) noexcept;
 
 	// Unions which include this type
 	friend NamedPropId;
 	friend PropId;
 
 	template <class I>
-	[[nodiscard]] static constexpr bool implements() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr bool implements() noexcept
 	{
 		return implements::IntIdIs<I>;
 	}
 
-	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
-	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard("unnecessary call")]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard("unnecessary call")]] service::ResolverMap getResolvers() const noexcept;
 
-	void beginSelectionSet(const service::SelectionSetParams& params) const final;
-	void endSelectionSet(const service::SelectionSetParams& params) const final;
+	void beginSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params) const override;
 
 	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
-	IntId(std::shared_ptr<T> pimpl) noexcept
+	explicit IntId(std::shared_ptr<T> pimpl) noexcept
 		: IntId { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
 	}
 
-	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr std::string_view getObjectType() noexcept
 	{
 		return { R"gql(IntId)gql" };
 	}

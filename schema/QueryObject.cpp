@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-Query::Query(std::unique_ptr<const Concept>&& pimpl) noexcept
+Query::Query(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _schema { GetSchema() }
 	, _pimpl { std::move(pimpl) }
@@ -60,8 +60,9 @@ service::AwaitableResolver Query::resolveStores(service::ResolverParams&& params
 {
 	auto argIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getStores(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argIds));
+	auto result = _pimpl->getStores(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Store>::convert<service::TypeModifier::List>(std::move(result), std::move(params));

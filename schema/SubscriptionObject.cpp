@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-Subscription::Subscription(std::unique_ptr<const Concept>&& pimpl) noexcept
+Subscription::Subscription(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -59,8 +59,9 @@ service::AwaitableResolver Subscription::resolveItems(service::ResolverParams&& 
 {
 	auto argFolderId = service::ModifiedArgument<mapi::ObjectId>::require("folderId", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getItems(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argFolderId));
+	auto result = _pimpl->getItems(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argFolderId));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<ItemChange>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
@@ -70,8 +71,9 @@ service::AwaitableResolver Subscription::resolveSubFolders(service::ResolverPara
 {
 	auto argParentFolderId = service::ModifiedArgument<mapi::ObjectId>::require("parentFolderId", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getSubFolders(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argParentFolderId));
+	auto result = _pimpl->getSubFolders(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argParentFolderId));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<FolderChange>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
@@ -81,8 +83,9 @@ service::AwaitableResolver Subscription::resolveRootFolders(service::ResolverPar
 {
 	auto argStoreId = service::ModifiedArgument<response::IdType>::require("storeId", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getRootFolders(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argStoreId));
+	auto result = _pimpl->getRootFolders(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argStoreId));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<FolderChange>::convert<service::TypeModifier::List>(std::move(result), std::move(params));

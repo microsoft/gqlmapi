@@ -12,46 +12,46 @@
 
 namespace graphql::mapi::object {
 
-class [[nodiscard]] PropId final
+class [[nodiscard("unnecessary construction")]] PropId final
 	: public service::Object
 {
 private:
-	struct [[nodiscard]] Concept
+	struct [[nodiscard("unnecessary construction")]] Concept
 	{
 		virtual ~Concept() = default;
 
-		[[nodiscard]] virtual service::TypeNames getTypeNames() const noexcept = 0;
-		[[nodiscard]] virtual service::ResolverMap getResolvers() const noexcept = 0;
+		[[nodiscard("unnecessary call")]] virtual service::TypeNames getTypeNames() const noexcept = 0;
+		[[nodiscard("unnecessary call")]] virtual service::ResolverMap getResolvers() const noexcept = 0;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 	};
 
 	template <class T>
-	struct [[nodiscard]] Model
+	struct [[nodiscard("unnecessary construction")]] Model final
 		: Concept
 	{
-		Model(std::shared_ptr<T>&& pimpl) noexcept
+		explicit Model(std::shared_ptr<T> pimpl) noexcept
 			: _pimpl { std::move(pimpl) }
 		{
 		}
 
-		[[nodiscard]] service::TypeNames getTypeNames() const noexcept final
+		[[nodiscard("unnecessary call")]] service::TypeNames getTypeNames() const noexcept override
 		{
 			return _pimpl->getTypeNames();
 		}
 
-		[[nodiscard]] service::ResolverMap getResolvers() const noexcept final
+		[[nodiscard("unnecessary call")]] service::ResolverMap getResolvers() const noexcept override
 		{
 			return _pimpl->getResolvers();
 		}
 
-		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		void beginSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			_pimpl->beginSelectionSet(params);
 		}
 
-		void endSelectionSet(const service::SelectionSetParams& params) const final
+		void endSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			_pimpl->endSelectionSet(params);
 		}
@@ -60,16 +60,16 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	PropId(std::unique_ptr<const Concept>&& pimpl) noexcept;
+	explicit PropId(std::unique_ptr<const Concept> pimpl) noexcept;
 
-	void beginSelectionSet(const service::SelectionSetParams& params) const final;
-	void endSelectionSet(const service::SelectionSetParams& params) const final;
+	void beginSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params) const override;
 
 	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
-	PropId(std::shared_ptr<T> pimpl) noexcept
+	explicit PropId(std::shared_ptr<T> pimpl) noexcept
 		: PropId { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
 		static_assert(T::template implements<PropId>(), "PropId is not implemented");
