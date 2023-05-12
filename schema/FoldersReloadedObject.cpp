@@ -21,7 +21,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-FoldersReloaded::FoldersReloaded(std::unique_ptr<const Concept>&& pimpl) noexcept
+FoldersReloaded::FoldersReloaded(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -56,8 +56,9 @@ void FoldersReloaded::endSelectionSet(const service::SelectionSetParams& params)
 service::AwaitableResolver FoldersReloaded::resolveReloaded(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getReloaded(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getReloaded(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Folder>::convert<service::TypeModifier::List>(std::move(result), std::move(params));

@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-Mutation::Mutation(std::unique_ptr<const Concept>&& pimpl) noexcept
+Mutation::Mutation(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -65,8 +65,9 @@ service::AwaitableResolver Mutation::resolveCreateItem(service::ResolverParams&&
 {
 	auto argInput = service::ModifiedArgument<mapi::CreateItemInput>::require("input", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyCreateItem(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput));
+	auto result = _pimpl->applyCreateItem(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Item>::convert(std::move(result), std::move(params));
@@ -76,8 +77,9 @@ service::AwaitableResolver Mutation::resolveCreateSubFolder(service::ResolverPar
 {
 	auto argInput = service::ModifiedArgument<mapi::CreateSubFolderInput>::require("input", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyCreateSubFolder(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput));
+	auto result = _pimpl->applyCreateSubFolder(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Folder>::convert(std::move(result), std::move(params));
@@ -87,8 +89,9 @@ service::AwaitableResolver Mutation::resolveModifyItem(service::ResolverParams&&
 {
 	auto argInput = service::ModifiedArgument<mapi::ModifyItemInput>::require("input", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyModifyItem(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput));
+	auto result = _pimpl->applyModifyItem(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Item>::convert(std::move(result), std::move(params));
@@ -98,8 +101,9 @@ service::AwaitableResolver Mutation::resolveModifyFolder(service::ResolverParams
 {
 	auto argInput = service::ModifiedArgument<mapi::ModifyFolderInput>::require("input", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyModifyFolder(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput));
+	auto result = _pimpl->applyModifyFolder(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Folder>::convert(std::move(result), std::move(params));
@@ -121,11 +125,12 @@ service::AwaitableResolver Mutation::resolveRemoveFolder(service::ResolverParams
 	auto argInput = service::ModifiedArgument<ObjectId>::require("input", params.arguments);
 	auto pairHardDelete = service::ModifiedArgument<bool>::find("hardDelete", params.arguments);
 	auto argHardDelete = (pairHardDelete.second
-		? std::move(pairHardDelete.first)
+		? pairHardDelete.first
 		: service::ModifiedArgument<bool>::require("hardDelete", defaultArguments));
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyRemoveFolder(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput), std::move(argHardDelete));
+	auto result = _pimpl->applyRemoveFolder(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput), std::move(argHardDelete));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<bool>::convert(std::move(result), std::move(params));
@@ -147,11 +152,12 @@ service::AwaitableResolver Mutation::resolveMarkAsRead(service::ResolverParams&&
 	auto argInput = service::ModifiedArgument<MultipleItemsInput>::require("input", params.arguments);
 	auto pairRead = service::ModifiedArgument<bool>::find("read", params.arguments);
 	auto argRead = (pairRead.second
-		? std::move(pairRead.first)
+		? pairRead.first
 		: service::ModifiedArgument<bool>::require("read", defaultArguments));
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyMarkAsRead(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput), std::move(argRead));
+	auto result = _pimpl->applyMarkAsRead(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput), std::move(argRead));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<bool>::convert(std::move(result), std::move(params));
@@ -162,8 +168,9 @@ service::AwaitableResolver Mutation::resolveCopyItems(service::ResolverParams&& 
 	auto argInput = service::ModifiedArgument<MultipleItemsInput>::require("input", params.arguments);
 	auto argDestination = service::ModifiedArgument<ObjectId>::require("destination", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyCopyItems(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput), std::move(argDestination));
+	auto result = _pimpl->applyCopyItems(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput), std::move(argDestination));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<bool>::convert(std::move(result), std::move(params));
@@ -174,8 +181,9 @@ service::AwaitableResolver Mutation::resolveMoveItems(service::ResolverParams&& 
 	auto argInput = service::ModifiedArgument<MultipleItemsInput>::require("input", params.arguments);
 	auto argDestination = service::ModifiedArgument<ObjectId>::require("destination", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyMoveItems(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput), std::move(argDestination));
+	auto result = _pimpl->applyMoveItems(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput), std::move(argDestination));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<bool>::convert(std::move(result), std::move(params));
@@ -197,11 +205,12 @@ service::AwaitableResolver Mutation::resolveDeleteItems(service::ResolverParams&
 	auto argInput = service::ModifiedArgument<MultipleItemsInput>::require("input", params.arguments);
 	auto pairHardDelete = service::ModifiedArgument<bool>::find("hardDelete", params.arguments);
 	auto argHardDelete = (pairHardDelete.second
-		? std::move(pairHardDelete.first)
+		? pairHardDelete.first
 		: service::ModifiedArgument<bool>::require("hardDelete", defaultArguments));
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyDeleteItems(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argInput), std::move(argHardDelete));
+	auto result = _pimpl->applyDeleteItems(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argInput), std::move(argHardDelete));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<bool>::convert(std::move(result), std::move(params));

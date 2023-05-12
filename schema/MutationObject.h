@@ -135,50 +135,50 @@ concept endSelectionSet = requires (TImpl impl, const service::SelectionSetParam
 
 } // namespace methods::MutationHas
 
-class [[nodiscard]] Mutation final
+class [[nodiscard("unnecessary construction")]] Mutation final
 	: public service::Object
 {
 private:
-	[[nodiscard]] service::AwaitableResolver resolveCreateItem(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveCreateSubFolder(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveModifyItem(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveModifyFolder(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveRemoveFolder(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveMarkAsRead(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveCopyItems(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveMoveItems(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveDeleteItems(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveCreateItem(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveCreateSubFolder(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveModifyItem(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveModifyFolder(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveRemoveFolder(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveMarkAsRead(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveCopyItems(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveMoveItems(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolveDeleteItems(service::ResolverParams&& params) const;
 
-	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
+	[[nodiscard("unnecessary call")]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
-	struct [[nodiscard]] Concept
+	struct [[nodiscard("unnecessary construction")]] Concept
 	{
 		virtual ~Concept() = default;
 
 		virtual void beginSelectionSet(const service::SelectionSetParams& params) const = 0;
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const = 0;
+		[[nodiscard("unnecessary call")]] virtual service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const = 0;
 	};
 
 	template <class T>
-	struct [[nodiscard]] Model
+	struct [[nodiscard("unnecessary construction")]] Model final
 		: Concept
 	{
-		Model(std::shared_ptr<T>&& pimpl) noexcept
+		explicit Model(std::shared_ptr<T> pimpl) noexcept
 			: _pimpl { std::move(pimpl) }
 		{
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Item>> applyCreateItem(service::FieldParams&& params, CreateItemInput&& inputArg) const override
 		{
 			if constexpr (methods::MutationHas::applyCreateItemWithParams<T>)
 			{
@@ -190,11 +190,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyCreateItem is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyCreateItem)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Folder>> applyCreateSubFolder(service::FieldParams&& params, CreateSubFolderInput&& inputArg) const override
 		{
 			if constexpr (methods::MutationHas::applyCreateSubFolderWithParams<T>)
 			{
@@ -206,11 +206,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyCreateSubFolder is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyCreateSubFolder)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Item>> applyModifyItem(service::FieldParams&& params, ModifyItemInput&& inputArg) const override
 		{
 			if constexpr (methods::MutationHas::applyModifyItemWithParams<T>)
 			{
@@ -222,11 +222,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyModifyItem is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyModifyItem)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableObject<std::shared_ptr<Folder>> applyModifyFolder(service::FieldParams&& params, ModifyFolderInput&& inputArg) const override
 		{
 			if constexpr (methods::MutationHas::applyModifyFolderWithParams<T>)
 			{
@@ -238,11 +238,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyModifyFolder is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyModifyFolder)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<bool> applyRemoveFolder(service::FieldParams&& params, ObjectId&& inputArg, bool&& hardDeleteArg) const override
 		{
 			if constexpr (methods::MutationHas::applyRemoveFolderWithParams<T>)
 			{
@@ -254,11 +254,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyRemoveFolder is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyRemoveFolder)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<bool> applyMarkAsRead(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& readArg) const override
 		{
 			if constexpr (methods::MutationHas::applyMarkAsReadWithParams<T>)
 			{
@@ -270,11 +270,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyMarkAsRead is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyMarkAsRead)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<bool> applyCopyItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const override
 		{
 			if constexpr (methods::MutationHas::applyCopyItemsWithParams<T>)
 			{
@@ -286,11 +286,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyCopyItems is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyCopyItems)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<bool> applyMoveItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, ObjectId&& destinationArg) const override
 		{
 			if constexpr (methods::MutationHas::applyMoveItemsWithParams<T>)
 			{
@@ -302,11 +302,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyMoveItems is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyMoveItems)ex");
 			}
 		}
 
-		[[nodiscard]] service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const final
+		[[nodiscard("unnecessary call")]] service::AwaitableScalar<bool> applyDeleteItems(service::FieldParams&& params, MultipleItemsInput&& inputArg, bool&& hardDeleteArg) const override
 		{
 			if constexpr (methods::MutationHas::applyDeleteItemsWithParams<T>)
 			{
@@ -318,11 +318,11 @@ private:
 			}
 			else
 			{
-				throw std::runtime_error(R"ex(Mutation::applyDeleteItems is not implemented)ex");
+				throw service::unimplemented_method(R"ex(Mutation::applyDeleteItems)ex");
 			}
 		}
 
-		void beginSelectionSet(const service::SelectionSetParams& params) const final
+		void beginSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::MutationHas::beginSelectionSet<T>)
 			{
@@ -330,7 +330,7 @@ private:
 			}
 		}
 
-		void endSelectionSet(const service::SelectionSetParams& params) const final
+		void endSelectionSet(const service::SelectionSetParams& params) const override
 		{
 			if constexpr (methods::MutationHas::endSelectionSet<T>)
 			{
@@ -342,24 +342,24 @@ private:
 		const std::shared_ptr<T> _pimpl;
 	};
 
-	Mutation(std::unique_ptr<const Concept>&& pimpl) noexcept;
+	explicit Mutation(std::unique_ptr<const Concept> pimpl) noexcept;
 
-	[[nodiscard]] service::TypeNames getTypeNames() const noexcept;
-	[[nodiscard]] service::ResolverMap getResolvers() const noexcept;
+	[[nodiscard("unnecessary call")]] service::TypeNames getTypeNames() const noexcept;
+	[[nodiscard("unnecessary call")]] service::ResolverMap getResolvers() const noexcept;
 
-	void beginSelectionSet(const service::SelectionSetParams& params) const final;
-	void endSelectionSet(const service::SelectionSetParams& params) const final;
+	void beginSelectionSet(const service::SelectionSetParams& params) const override;
+	void endSelectionSet(const service::SelectionSetParams& params) const override;
 
 	const std::unique_ptr<const Concept> _pimpl;
 
 public:
 	template <class T>
-	Mutation(std::shared_ptr<T> pimpl) noexcept
+	explicit Mutation(std::shared_ptr<T> pimpl) noexcept
 		: Mutation { std::unique_ptr<const Concept> { std::make_unique<Model<T>>(std::move(pimpl)) } }
 	{
 	}
 
-	[[nodiscard]] static constexpr std::string_view getObjectType() noexcept
+	[[nodiscard("unnecessary call")]] static constexpr std::string_view getObjectType() noexcept
 	{
 		return { R"gql(Mutation)gql" };
 	}

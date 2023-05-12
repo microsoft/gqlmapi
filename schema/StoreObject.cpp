@@ -22,7 +22,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-Store::Store(std::unique_ptr<const Concept>&& pimpl) noexcept
+Store::Store(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -62,8 +62,9 @@ void Store::endSelectionSet(const service::SelectionSetParams& params) const
 service::AwaitableResolver Store::resolveId(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getId(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getId(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<response::IdType>::convert(std::move(result), std::move(params));
@@ -72,8 +73,9 @@ service::AwaitableResolver Store::resolveId(service::ResolverParams&& params) co
 service::AwaitableResolver Store::resolveName(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getName(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getName(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<std::string>::convert(std::move(result), std::move(params));
@@ -82,8 +84,9 @@ service::AwaitableResolver Store::resolveName(service::ResolverParams&& params) 
 service::AwaitableResolver Store::resolveColumns(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getColumns(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getColumns(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Property>::convert<service::TypeModifier::List, service::TypeModifier::Nullable>(std::move(result), std::move(params));
@@ -93,8 +96,9 @@ service::AwaitableResolver Store::resolveRootFolders(service::ResolverParams&& p
 {
 	auto argIds = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getRootFolders(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argIds));
+	auto result = _pimpl->getRootFolders(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Folder>::convert<service::TypeModifier::List>(std::move(result), std::move(params));
@@ -104,8 +108,9 @@ service::AwaitableResolver Store::resolveSpecialFolders(service::ResolverParams&
 {
 	auto argIds = service::ModifiedArgument<mapi::SpecialFolder>::require<service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getSpecialFolders(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argIds));
+	auto result = _pimpl->getSpecialFolders(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Folder>::convert<service::TypeModifier::List, service::TypeModifier::Nullable>(std::move(result), std::move(params));
@@ -116,8 +121,9 @@ service::AwaitableResolver Store::resolveFolderProperties(service::ResolverParam
 	auto argFolderId = service::ModifiedArgument<response::IdType>::require("folderId", params.arguments);
 	auto argIds = service::ModifiedArgument<mapi::Column>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getFolderProperties(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argFolderId), std::move(argIds));
+	auto result = _pimpl->getFolderProperties(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argFolderId), std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Property>::convert<service::TypeModifier::List, service::TypeModifier::Nullable>(std::move(result), std::move(params));
@@ -128,8 +134,9 @@ service::AwaitableResolver Store::resolveItemProperties(service::ResolverParams&
 	auto argItemId = service::ModifiedArgument<response::IdType>::require("itemId", params.arguments);
 	auto argIds = service::ModifiedArgument<mapi::Column>::require<service::TypeModifier::Nullable, service::TypeModifier::List>("ids", params.arguments);
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getItemProperties(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argItemId), std::move(argIds));
+	auto result = _pimpl->getItemProperties(service::FieldParams { std::move(selectionSetParams), std::move(directives) }, std::move(argItemId), std::move(argIds));
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Property>::convert<service::TypeModifier::List, service::TypeModifier::Nullable>(std::move(result), std::move(params));

@@ -20,7 +20,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-IntId::IntId(std::unique_ptr<const Concept>&& pimpl) noexcept
+IntId::IntId(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -56,8 +56,9 @@ void IntId::endSelectionSet(const service::SelectionSetParams& params) const
 service::AwaitableResolver IntId::resolveId(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getId(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getId(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<int>::convert(std::move(result), std::move(params));

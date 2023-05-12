@@ -49,16 +49,16 @@ mapi::SpecialFolder Argument<mapi::SpecialFolder>::convert(const response::Value
 }
 
 template <>
-service::AwaitableResolver Result<mapi::SpecialFolder>::convert(service::AwaitableScalar<mapi::SpecialFolder> result, ResolverParams params)
+service::AwaitableResolver Result<mapi::SpecialFolder>::convert(service::AwaitableScalar<mapi::SpecialFolder> result, ResolverParams&& params)
 {
 	return ModifiedResult<mapi::SpecialFolder>::resolve(std::move(result), std::move(params),
 		[](mapi::SpecialFolder value, const ResolverParams&)
 		{
-			response::Value result(response::Type::EnumValue);
+			response::Value resolvedResult(response::Type::EnumValue);
 
-			result.set<std::string>(std::string { s_namesSpecialFolder[static_cast<size_t>(value)] });
+			resolvedResult.set<std::string>(std::string { s_namesSpecialFolder[static_cast<size_t>(value)] });
 
-			return result;
+			return resolvedResult;
 		});
 }
 
@@ -105,16 +105,16 @@ mapi::PropType Argument<mapi::PropType>::convert(const response::Value& value)
 }
 
 template <>
-service::AwaitableResolver Result<mapi::PropType>::convert(service::AwaitableScalar<mapi::PropType> result, ResolverParams params)
+service::AwaitableResolver Result<mapi::PropType>::convert(service::AwaitableScalar<mapi::PropType> result, ResolverParams&& params)
 {
 	return ModifiedResult<mapi::PropType>::resolve(std::move(result), std::move(params),
 		[](mapi::PropType value, const ResolverParams&)
 		{
-			response::Value result(response::Type::EnumValue);
+			response::Value resolvedResult(response::Type::EnumValue);
 
-			result.set<std::string>(std::string { s_namesPropType[static_cast<size_t>(value)] });
+			resolvedResult.set<std::string>(std::string { s_namesPropType[static_cast<size_t>(value)] });
 
-			return result;
+			return resolvedResult;
 		});
 }
 
@@ -216,7 +216,7 @@ mapi::CreateItemInput Argument<mapi::CreateItemInput>::convert(const response::V
 	auto valueConversationId = service::ModifiedArgument<response::IdType>::require<service::TypeModifier::Nullable>("conversationId", value);
 	auto pairRead = service::ModifiedArgument<bool>::find("read", value);
 	auto valueRead = (pairRead.second
-		? std::move(pairRead.first)
+		? pairRead.first
 		: service::ModifiedArgument<bool>::require("read", defaultValue));
 	auto valueReceived = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("received", value);
 	auto valueModified = service::ModifiedArgument<response::Value>::require<service::TypeModifier::Nullable>("modified", value);
@@ -226,7 +226,7 @@ mapi::CreateItemInput Argument<mapi::CreateItemInput>::convert(const response::V
 		std::move(valueFolderId),
 		std::move(valueSubject),
 		std::move(valueConversationId),
-		std::move(valueRead),
+		valueRead,
 		std::move(valueReceived),
 		std::move(valueModified),
 		std::move(valueProperties)
@@ -321,13 +321,13 @@ mapi::Order Argument<mapi::Order>::convert(const response::Value& value)
 
 	auto pairDescending = service::ModifiedArgument<bool>::find("descending", value);
 	auto valueDescending = (pairDescending.second
-		? std::move(pairDescending.first)
+		? pairDescending.first
 		: service::ModifiedArgument<bool>::require("descending", defaultValue));
 	auto valueProperty = service::ModifiedArgument<mapi::PropIdInput>::require("property", value);
 	auto valueType = service::ModifiedArgument<mapi::PropType>::require("type", value);
 
 	return mapi::Order {
-		std::move(valueDescending),
+		valueDescending,
 		std::move(valueProperty),
 		std::move(valueType)
 	};
@@ -349,6 +349,11 @@ mapi::Column Argument<mapi::Column>::convert(const response::Value& value)
 
 namespace mapi {
 
+ObjectId::ObjectId() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 ObjectId::ObjectId(
 		response::IdType storeIdArg,
 		response::IdType objectIdArg) noexcept
@@ -369,6 +374,11 @@ ObjectId::ObjectId(ObjectId&& other) noexcept
 {
 }
 
+ObjectId::~ObjectId()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 ObjectId& ObjectId::operator=(const ObjectId& other)
 {
 	ObjectId value { other };
@@ -384,6 +394,11 @@ ObjectId& ObjectId::operator=(ObjectId&& other) noexcept
 	objectId = std::move(other.objectId);
 
 	return *this;
+}
+
+NamedPropInput::NamedPropInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 NamedPropInput::NamedPropInput(
@@ -410,6 +425,11 @@ NamedPropInput::NamedPropInput(NamedPropInput&& other) noexcept
 {
 }
 
+NamedPropInput::~NamedPropInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 NamedPropInput& NamedPropInput::operator=(const NamedPropInput& other)
 {
 	NamedPropInput value { other };
@@ -426,6 +446,11 @@ NamedPropInput& NamedPropInput::operator=(NamedPropInput&& other) noexcept
 	name = std::move(other.name);
 
 	return *this;
+}
+
+PropIdInput::PropIdInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 PropIdInput::PropIdInput(
@@ -448,6 +473,11 @@ PropIdInput::PropIdInput(PropIdInput&& other) noexcept
 {
 }
 
+PropIdInput::~PropIdInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 PropIdInput& PropIdInput::operator=(const PropIdInput& other)
 {
 	PropIdInput value { other };
@@ -463,6 +493,11 @@ PropIdInput& PropIdInput::operator=(PropIdInput&& other) noexcept
 	named = std::move(other.named);
 
 	return *this;
+}
+
+PropValueInput::PropValueInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 PropValueInput::PropValueInput(
@@ -505,6 +540,11 @@ PropValueInput::PropValueInput(PropValueInput&& other) noexcept
 {
 }
 
+PropValueInput::~PropValueInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 PropValueInput& PropValueInput::operator=(const PropValueInput& other)
 {
 	PropValueInput value { other };
@@ -525,6 +565,11 @@ PropValueInput& PropValueInput::operator=(PropValueInput&& other) noexcept
 	stream = std::move(other.stream);
 
 	return *this;
+}
+
+CreateItemInput::CreateItemInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 CreateItemInput::CreateItemInput(
@@ -567,6 +612,11 @@ CreateItemInput::CreateItemInput(CreateItemInput&& other) noexcept
 {
 }
 
+CreateItemInput::~CreateItemInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 CreateItemInput& CreateItemInput::operator=(const CreateItemInput& other)
 {
 	CreateItemInput value { other };
@@ -587,6 +637,11 @@ CreateItemInput& CreateItemInput::operator=(CreateItemInput&& other) noexcept
 	properties = std::move(other.properties);
 
 	return *this;
+}
+
+CreateSubFolderInput::CreateSubFolderInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 CreateSubFolderInput::CreateSubFolderInput(
@@ -613,6 +668,11 @@ CreateSubFolderInput::CreateSubFolderInput(CreateSubFolderInput&& other) noexcep
 {
 }
 
+CreateSubFolderInput::~CreateSubFolderInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 CreateSubFolderInput& CreateSubFolderInput::operator=(const CreateSubFolderInput& other)
 {
 	CreateSubFolderInput value { other };
@@ -629,6 +689,11 @@ CreateSubFolderInput& CreateSubFolderInput::operator=(CreateSubFolderInput&& oth
 	properties = std::move(other.properties);
 
 	return *this;
+}
+
+ModifyItemInput::ModifyItemInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 ModifyItemInput::ModifyItemInput(
@@ -663,6 +728,11 @@ ModifyItemInput::ModifyItemInput(ModifyItemInput&& other) noexcept
 {
 }
 
+ModifyItemInput::~ModifyItemInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 ModifyItemInput& ModifyItemInput::operator=(const ModifyItemInput& other)
 {
 	ModifyItemInput value { other };
@@ -681,6 +751,11 @@ ModifyItemInput& ModifyItemInput::operator=(ModifyItemInput&& other) noexcept
 	deleted = std::move(other.deleted);
 
 	return *this;
+}
+
+ModifyFolderInput::ModifyFolderInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 ModifyFolderInput::ModifyFolderInput(
@@ -711,6 +786,11 @@ ModifyFolderInput::ModifyFolderInput(ModifyFolderInput&& other) noexcept
 {
 }
 
+ModifyFolderInput::~ModifyFolderInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 ModifyFolderInput& ModifyFolderInput::operator=(const ModifyFolderInput& other)
 {
 	ModifyFolderInput value { other };
@@ -728,6 +808,11 @@ ModifyFolderInput& ModifyFolderInput::operator=(ModifyFolderInput&& other) noexc
 	deleted = std::move(other.deleted);
 
 	return *this;
+}
+
+MultipleItemsInput::MultipleItemsInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 MultipleItemsInput::MultipleItemsInput(
@@ -750,6 +835,11 @@ MultipleItemsInput::MultipleItemsInput(MultipleItemsInput&& other) noexcept
 {
 }
 
+MultipleItemsInput::~MultipleItemsInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 MultipleItemsInput& MultipleItemsInput::operator=(const MultipleItemsInput& other)
 {
 	MultipleItemsInput value { other };
@@ -765,6 +855,11 @@ MultipleItemsInput& MultipleItemsInput::operator=(MultipleItemsInput&& other) no
 	itemIds = std::move(other.itemIds);
 
 	return *this;
+}
+
+PropertyInput::PropertyInput() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 PropertyInput::PropertyInput(
@@ -787,6 +882,11 @@ PropertyInput::PropertyInput(PropertyInput&& other) noexcept
 {
 }
 
+PropertyInput::~PropertyInput()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 PropertyInput& PropertyInput::operator=(const PropertyInput& other)
 {
 	PropertyInput value { other };
@@ -802,6 +902,11 @@ PropertyInput& PropertyInput::operator=(PropertyInput&& other) noexcept
 	value = std::move(other.value);
 
 	return *this;
+}
+
+Order::Order() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 Order::Order(
@@ -828,6 +933,11 @@ Order::Order(Order&& other) noexcept
 {
 }
 
+Order::~Order()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
+}
+
 Order& Order::operator=(const Order& other)
 {
 	Order value { other };
@@ -844,6 +954,11 @@ Order& Order::operator=(Order&& other) noexcept
 	type = std::move(other.type);
 
 	return *this;
+}
+
+Column::Column() noexcept
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 Column::Column(
@@ -864,6 +979,11 @@ Column::Column(Column&& other) noexcept
 	: property { std::move(other.property) }
 	, type { std::move(other.type) }
 {
+}
+
+Column::~Column()
+{
+	// Explicit definition to prevent ODR violations when LTO is enabled.
 }
 
 Column& Column::operator=(const Column& other)

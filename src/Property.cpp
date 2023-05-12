@@ -31,10 +31,6 @@ Property::Property(const id_variant& id, mapi_ptr<SPropValue>&& value)
 				return std::make_shared<object::PropId>(
 					std::make_shared<object::NamedId>(std::make_shared<NamedId>(id)));
 			}
-			else
-			{
-				static_assert(false, "unhandled variant type");
-			}
 		},
 		id) }
 	, m_value { std::move(value) }

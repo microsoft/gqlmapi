@@ -22,7 +22,7 @@ static_assert(graphql::internal::MinorVersion == 5, "regenerate with schemagen: 
 namespace graphql {
 namespace mapi {
 
-enum class [[nodiscard]] SpecialFolder
+enum class [[nodiscard("unnecessary conversion")]] SpecialFolder
 {
 	INBOX,
 	CALENDAR,
@@ -36,7 +36,7 @@ enum class [[nodiscard]] SpecialFolder
 	SPAM
 };
 
-[[nodiscard]] constexpr auto getSpecialFolderNames() noexcept
+[[nodiscard("unnecessary call")]] constexpr auto getSpecialFolderNames() noexcept
 {
 	using namespace std::literals;
 
@@ -54,7 +54,7 @@ enum class [[nodiscard]] SpecialFolder
 	};
 }
 
-[[nodiscard]] constexpr auto getSpecialFolderValues() noexcept
+[[nodiscard("unnecessary call")]] constexpr auto getSpecialFolderValues() noexcept
 {
 	using namespace std::literals;
 
@@ -72,7 +72,7 @@ enum class [[nodiscard]] SpecialFolder
 	};
 }
 
-enum class [[nodiscard]] PropType
+enum class [[nodiscard("unnecessary conversion")]] PropType
 {
 	INT,
 	BOOL,
@@ -83,7 +83,7 @@ enum class [[nodiscard]] PropType
 	STREAM
 };
 
-[[nodiscard]] constexpr auto getPropTypeNames() noexcept
+[[nodiscard("unnecessary call")]] constexpr auto getPropTypeNames() noexcept
 {
 	using namespace std::literals;
 
@@ -98,7 +98,7 @@ enum class [[nodiscard]] PropType
 	};
 }
 
-[[nodiscard]] constexpr auto getPropTypeValues() noexcept
+[[nodiscard("unnecessary call")]] constexpr auto getPropTypeValues() noexcept
 {
 	using namespace std::literals;
 
@@ -113,13 +113,15 @@ enum class [[nodiscard]] PropType
 	};
 }
 
-struct [[nodiscard]] ObjectId
+struct [[nodiscard("unnecessary construction")]] ObjectId
 {
+	explicit ObjectId() noexcept;
 	explicit ObjectId(
-		response::IdType storeIdArg = response::IdType {},
-		response::IdType objectIdArg = response::IdType {}) noexcept;
+		response::IdType storeIdArg,
+		response::IdType objectIdArg) noexcept;
 	ObjectId(const ObjectId& other);
 	ObjectId(ObjectId&& other) noexcept;
+	~ObjectId();
 
 	ObjectId& operator=(const ObjectId& other);
 	ObjectId& operator=(ObjectId&& other) noexcept;
@@ -128,14 +130,16 @@ struct [[nodiscard]] ObjectId
 	response::IdType objectId {};
 };
 
-struct [[nodiscard]] NamedPropInput
+struct [[nodiscard("unnecessary construction")]] NamedPropInput
 {
+	explicit NamedPropInput() noexcept;
 	explicit NamedPropInput(
-		response::Value propsetArg = response::Value {},
-		std::optional<int> idArg = std::optional<int> {},
-		std::optional<std::string> nameArg = std::optional<std::string> {}) noexcept;
+		response::Value propsetArg,
+		std::optional<int> idArg,
+		std::optional<std::string> nameArg) noexcept;
 	NamedPropInput(const NamedPropInput& other);
 	NamedPropInput(NamedPropInput&& other) noexcept;
+	~NamedPropInput();
 
 	NamedPropInput& operator=(const NamedPropInput& other);
 	NamedPropInput& operator=(NamedPropInput&& other) noexcept;
@@ -145,13 +149,15 @@ struct [[nodiscard]] NamedPropInput
 	std::optional<std::string> name {};
 };
 
-struct [[nodiscard]] PropIdInput
+struct [[nodiscard("unnecessary construction")]] PropIdInput
 {
+	explicit PropIdInput() noexcept;
 	explicit PropIdInput(
-		std::optional<int> idArg = std::optional<int> {},
-		std::unique_ptr<NamedPropInput> namedArg = std::unique_ptr<NamedPropInput> {}) noexcept;
+		std::optional<int> idArg,
+		std::unique_ptr<NamedPropInput> namedArg) noexcept;
 	PropIdInput(const PropIdInput& other);
 	PropIdInput(PropIdInput&& other) noexcept;
+	~PropIdInput();
 
 	PropIdInput& operator=(const PropIdInput& other);
 	PropIdInput& operator=(PropIdInput&& other) noexcept;
@@ -160,18 +166,20 @@ struct [[nodiscard]] PropIdInput
 	std::unique_ptr<NamedPropInput> named {};
 };
 
-struct [[nodiscard]] PropValueInput
+struct [[nodiscard("unnecessary construction")]] PropValueInput
 {
+	explicit PropValueInput() noexcept;
 	explicit PropValueInput(
-		std::optional<int> integerArg = std::optional<int> {},
-		std::optional<bool> booleanArg = std::optional<bool> {},
-		std::optional<std::string> stringArg = std::optional<std::string> {},
-		std::optional<response::Value> guidArg = std::optional<response::Value> {},
-		std::optional<response::Value> timeArg = std::optional<response::Value> {},
-		std::optional<response::IdType> binArg = std::optional<response::IdType> {},
-		std::optional<response::Value> streamArg = std::optional<response::Value> {}) noexcept;
+		std::optional<int> integerArg,
+		std::optional<bool> booleanArg,
+		std::optional<std::string> stringArg,
+		std::optional<response::Value> guidArg,
+		std::optional<response::Value> timeArg,
+		std::optional<response::IdType> binArg,
+		std::optional<response::Value> streamArg) noexcept;
 	PropValueInput(const PropValueInput& other);
 	PropValueInput(PropValueInput&& other) noexcept;
+	~PropValueInput();
 
 	PropValueInput& operator=(const PropValueInput& other);
 	PropValueInput& operator=(PropValueInput&& other) noexcept;
@@ -187,18 +195,20 @@ struct [[nodiscard]] PropValueInput
 
 struct PropertyInput;
 
-struct [[nodiscard]] CreateItemInput
+struct [[nodiscard("unnecessary construction")]] CreateItemInput
 {
+	explicit CreateItemInput() noexcept;
 	explicit CreateItemInput(
-		ObjectId folderIdArg = ObjectId {},
-		std::string subjectArg = std::string {},
-		std::optional<response::IdType> conversationIdArg = std::optional<response::IdType> {},
-		bool readArg = bool {},
-		std::optional<response::Value> receivedArg = std::optional<response::Value> {},
-		std::optional<response::Value> modifiedArg = std::optional<response::Value> {},
-		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {}) noexcept;
+		ObjectId folderIdArg,
+		std::string subjectArg,
+		std::optional<response::IdType> conversationIdArg,
+		bool readArg,
+		std::optional<response::Value> receivedArg,
+		std::optional<response::Value> modifiedArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg) noexcept;
 	CreateItemInput(const CreateItemInput& other);
 	CreateItemInput(CreateItemInput&& other) noexcept;
+	~CreateItemInput();
 
 	CreateItemInput& operator=(const CreateItemInput& other);
 	CreateItemInput& operator=(CreateItemInput&& other) noexcept;
@@ -212,14 +222,16 @@ struct [[nodiscard]] CreateItemInput
 	std::optional<std::vector<PropertyInput>> properties {};
 };
 
-struct [[nodiscard]] CreateSubFolderInput
+struct [[nodiscard("unnecessary construction")]] CreateSubFolderInput
 {
+	explicit CreateSubFolderInput() noexcept;
 	explicit CreateSubFolderInput(
-		ObjectId folderIdArg = ObjectId {},
-		std::string nameArg = std::string {},
-		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {}) noexcept;
+		ObjectId folderIdArg,
+		std::string nameArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg) noexcept;
 	CreateSubFolderInput(const CreateSubFolderInput& other);
 	CreateSubFolderInput(CreateSubFolderInput&& other) noexcept;
+	~CreateSubFolderInput();
 
 	CreateSubFolderInput& operator=(const CreateSubFolderInput& other);
 	CreateSubFolderInput& operator=(CreateSubFolderInput&& other) noexcept;
@@ -229,16 +241,18 @@ struct [[nodiscard]] CreateSubFolderInput
 	std::optional<std::vector<PropertyInput>> properties {};
 };
 
-struct [[nodiscard]] ModifyItemInput
+struct [[nodiscard("unnecessary construction")]] ModifyItemInput
 {
+	explicit ModifyItemInput() noexcept;
 	explicit ModifyItemInput(
-		ObjectId idArg = ObjectId {},
-		std::optional<std::string> subjectArg = std::optional<std::string> {},
-		std::optional<bool> readArg = std::optional<bool> {},
-		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {},
-		std::optional<std::vector<PropIdInput>> deletedArg = std::optional<std::vector<PropIdInput>> {}) noexcept;
+		ObjectId idArg,
+		std::optional<std::string> subjectArg,
+		std::optional<bool> readArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg,
+		std::optional<std::vector<PropIdInput>> deletedArg) noexcept;
 	ModifyItemInput(const ModifyItemInput& other);
 	ModifyItemInput(ModifyItemInput&& other) noexcept;
+	~ModifyItemInput();
 
 	ModifyItemInput& operator=(const ModifyItemInput& other);
 	ModifyItemInput& operator=(ModifyItemInput&& other) noexcept;
@@ -250,15 +264,17 @@ struct [[nodiscard]] ModifyItemInput
 	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
-struct [[nodiscard]] ModifyFolderInput
+struct [[nodiscard("unnecessary construction")]] ModifyFolderInput
 {
+	explicit ModifyFolderInput() noexcept;
 	explicit ModifyFolderInput(
-		ObjectId folderIdArg = ObjectId {},
-		std::optional<std::string> nameArg = std::optional<std::string> {},
-		std::optional<std::vector<PropertyInput>> propertiesArg = std::optional<std::vector<PropertyInput>> {},
-		std::optional<std::vector<PropIdInput>> deletedArg = std::optional<std::vector<PropIdInput>> {}) noexcept;
+		ObjectId folderIdArg,
+		std::optional<std::string> nameArg,
+		std::optional<std::vector<PropertyInput>> propertiesArg,
+		std::optional<std::vector<PropIdInput>> deletedArg) noexcept;
 	ModifyFolderInput(const ModifyFolderInput& other);
 	ModifyFolderInput(ModifyFolderInput&& other) noexcept;
+	~ModifyFolderInput();
 
 	ModifyFolderInput& operator=(const ModifyFolderInput& other);
 	ModifyFolderInput& operator=(ModifyFolderInput&& other) noexcept;
@@ -269,13 +285,15 @@ struct [[nodiscard]] ModifyFolderInput
 	std::optional<std::vector<PropIdInput>> deleted {};
 };
 
-struct [[nodiscard]] MultipleItemsInput
+struct [[nodiscard("unnecessary construction")]] MultipleItemsInput
 {
+	explicit MultipleItemsInput() noexcept;
 	explicit MultipleItemsInput(
-		ObjectId folderIdArg = ObjectId {},
-		std::vector<response::IdType> itemIdsArg = std::vector<response::IdType> {}) noexcept;
+		ObjectId folderIdArg,
+		std::vector<response::IdType> itemIdsArg) noexcept;
 	MultipleItemsInput(const MultipleItemsInput& other);
 	MultipleItemsInput(MultipleItemsInput&& other) noexcept;
+	~MultipleItemsInput();
 
 	MultipleItemsInput& operator=(const MultipleItemsInput& other);
 	MultipleItemsInput& operator=(MultipleItemsInput&& other) noexcept;
@@ -284,13 +302,15 @@ struct [[nodiscard]] MultipleItemsInput
 	std::vector<response::IdType> itemIds {};
 };
 
-struct [[nodiscard]] PropertyInput
+struct [[nodiscard("unnecessary construction")]] PropertyInput
 {
+	explicit PropertyInput() noexcept;
 	explicit PropertyInput(
-		PropIdInput idArg = PropIdInput {},
-		PropValueInput valueArg = PropValueInput {}) noexcept;
+		PropIdInput idArg,
+		PropValueInput valueArg) noexcept;
 	PropertyInput(const PropertyInput& other);
 	PropertyInput(PropertyInput&& other) noexcept;
+	~PropertyInput();
 
 	PropertyInput& operator=(const PropertyInput& other);
 	PropertyInput& operator=(PropertyInput&& other) noexcept;
@@ -299,14 +319,16 @@ struct [[nodiscard]] PropertyInput
 	PropValueInput value {};
 };
 
-struct [[nodiscard]] Order
+struct [[nodiscard("unnecessary construction")]] Order
 {
+	explicit Order() noexcept;
 	explicit Order(
-		bool descendingArg = bool {},
-		PropIdInput propertyArg = PropIdInput {},
-		PropType typeArg = PropType {}) noexcept;
+		bool descendingArg,
+		PropIdInput propertyArg,
+		PropType typeArg) noexcept;
 	Order(const Order& other);
 	Order(Order&& other) noexcept;
+	~Order();
 
 	Order& operator=(const Order& other);
 	Order& operator=(Order&& other) noexcept;
@@ -316,13 +338,15 @@ struct [[nodiscard]] Order
 	PropType type {};
 };
 
-struct [[nodiscard]] Column
+struct [[nodiscard("unnecessary construction")]] Column
 {
+	explicit Column() noexcept;
 	explicit Column(
-		PropIdInput propertyArg = PropIdInput {},
-		PropType typeArg = PropType {}) noexcept;
+		PropIdInput propertyArg,
+		PropType typeArg) noexcept;
 	Column(const Column& other);
 	Column(Column&& other) noexcept;
+	~Column();
 
 	Column& operator=(const Column& other);
 	Column& operator=(Column&& other) noexcept;
@@ -370,7 +394,7 @@ class FoldersReloaded;
 
 } // namespace object
 
-class [[nodiscard]] Operations final
+class [[nodiscard("unnecessary construction")]] Operations final
 	: public service::Request
 {
 public:

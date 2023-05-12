@@ -21,7 +21,7 @@ using namespace std::literals;
 namespace graphql::mapi {
 namespace object {
 
-ItemUpdated::ItemUpdated(std::unique_ptr<const Concept>&& pimpl) noexcept
+ItemUpdated::ItemUpdated(std::unique_ptr<const Concept> pimpl) noexcept
 	: service::Object{ getTypeNames(), getResolvers() }
 	, _pimpl { std::move(pimpl) }
 {
@@ -57,8 +57,9 @@ void ItemUpdated::endSelectionSet(const service::SelectionSetParams& params) con
 service::AwaitableResolver ItemUpdated::resolveIndex(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getIndex(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getIndex(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<int>::convert(std::move(result), std::move(params));
@@ -67,8 +68,9 @@ service::AwaitableResolver ItemUpdated::resolveIndex(service::ResolverParams&& p
 service::AwaitableResolver ItemUpdated::resolveUpdated(service::ResolverParams&& params) const
 {
 	std::unique_lock resolverLock(_resolverMutex);
+	service::SelectionSetParams selectionSetParams { static_cast<const service::SelectionSetParams&>(params) };
 	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->getUpdated(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
+	auto result = _pimpl->getUpdated(service::FieldParams { std::move(selectionSetParams), std::move(directives) });
 	resolverLock.unlock();
 
 	return service::ModifiedResult<Item>::convert(std::move(result), std::move(params));
