@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set target triplet
       id: set-variables
@@ -22,21 +22,11 @@ jobs:
       run: echo "::set-output name=vcpkg_triplet::${{ matrix.arch }}-windows$(if ('${{ matrix.libs }}' -eq 'static') { '-static' })"
 
     - name: Cache vcpkg
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache-vcpkg
       with:
-        path: vcpkg/
+        path: build/vcpkg_installed/
         key: vcpkg-${{ steps.set-variables.outputs.vcpkg_triplet }}
-
-    - name: Install Dependencies
-      if: ${{ !steps.cache-vcpkg.outputs.cache-hit }}
-      shell: pwsh
-      run: |
-        git clone https://github.com/microsoft/vcpkg
-        cd vcpkg
-        .\bootstrap-vcpkg.bat
-        .\vcpkg integrate install
-        .\vcpkg install cppgraphqlgen gtest --triplet ${{ steps.set-variables.outputs.vcpkg_triplet }}
 
     - name: Create Build Environment
       run: cmake -E make_directory build
@@ -45,7 +35,7 @@ jobs:
       shell: pwsh
       working-directory: build/
       run: |
-        $vcpkgToolchain = Join-Path '..\vcpkg' '.\scripts\buildsystems\vcpkg.cmake' -Resolve
+        $vcpkgToolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT '.\scripts\buildsystems\vcpkg.cmake' -Resolve
         $vcpkgTriplet = '${{ steps.set-variables.outputs.vcpkg_triplet }}'
         $cmakeSharedLibs = $(if ('${{ matrix.libs }}' -eq 'shared') { 'ON' } else { 'OFF' })
         $msbuildArch = $(if ('${{ matrix.arch }}' -eq 'x64') { 'X64' } else { 'Win32' })
