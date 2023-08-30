@@ -4,5 +4,6 @@
   "dependencies": [
     "cppgraphqlgen",
     "gtest"
-  ]
+  ],
+  "builtin-baseline": "d856a6560e1297f97e906c889f5bea673721b97f"
 }
