@@ -5,7 +5,11 @@ find_package(GTest CONFIG REQUIRED)
 include(GoogleTest)
 
 add_library(testShared STATIC gmock_main.cpp MockObjects.cpp)
-target_link_libraries(testShared PUBLIC gqlmapiCommon GTest::gtest GTest::gmock)
+target_link_libraries(testShared PUBLIC
+  gqlmapiCommon
+  cppgraphqlgen::graphqljson
+  GTest::gtest
+  GTest::gmock)
 
 add_executable(schemaTest SchemaTest.cpp)
 target_link_libraries(schemaTest PRIVATE testShared)

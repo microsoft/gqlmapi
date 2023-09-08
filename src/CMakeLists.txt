@@ -43,16 +43,13 @@ target_include_directories(gqlmapiCommon PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_link_libraries(gqlmapiCommon PUBLIC
   mapistub
-  mapi_schema
-  cppgraphqlgen::graphqljson)
+  mapi_schema)
 
 # Build a separate gqlmapi library as either static or shared depending on BUILD_SHARED_LIBS.
 add_library(gqlmapi Service.cpp)
 target_link_libraries(gqlmapi
   PRIVATE $<BUILD_INTERFACE:gqlmapiCommon>
-  INTERFACE
-    cppgraphqlgen::graphqlservice
-    cppgraphqlgen::graphqljson)
+  INTERFACE cppgraphqlgen::graphqlservice)
 target_include_directories(gqlmapi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../schema>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -68,11 +65,17 @@ if(BUILD_SHARED_LIBS)
       RelWithDebInfo)
 
   install(FILES
-    $<TARGET_FILE:cppgraphqlgen::graphqljson>
     $<TARGET_FILE:cppgraphqlgen::graphqlpeg>
     $<TARGET_FILE:cppgraphqlgen::graphqlresponse>
     $<TARGET_FILE:cppgraphqlgen::graphqlservice>
     TYPE BIN)
+
+  option(INSTALL_GRAPHQLJSON "Include graphqljson.dll when installing gqlmapi.dll" ON)
+
+  if(INSTALL_GRAPHQLJSON)
+    install(FILES $<TARGET_FILE:cppgraphqlgen::graphqljson>
+      TYPE BIN)
+  endif()
 else()
   install(TARGETS
       mapistub
