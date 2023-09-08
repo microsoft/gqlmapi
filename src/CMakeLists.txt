@@ -50,6 +50,13 @@ add_library(gqlmapi Service.cpp)
 target_link_libraries(gqlmapi
   PRIVATE $<BUILD_INTERFACE:gqlmapiCommon>
   INTERFACE cppgraphqlgen::graphqlservice)
+
+option(IMPLICIT_GRAPHQLJSON_DEPENDENCY "Make the gqlmapi library depend on cppgraphqlgen::graphqljson implicitly." ON)
+
+if(IMPLICIT_GRAPHQLJSON_DEPENDENCY)
+  target_link_libraries(gqlmapi INTERFACE cppgraphqlgen::graphqljson)
+endif()
+
 target_include_directories(gqlmapi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../schema>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -70,11 +77,8 @@ if(BUILD_SHARED_LIBS)
     $<TARGET_FILE:cppgraphqlgen::graphqlservice>
     TYPE BIN)
 
-  option(INSTALL_GRAPHQLJSON "Include graphqljson.dll when installing gqlmapi.dll" ON)
-
-  if(INSTALL_GRAPHQLJSON)
-    install(FILES $<TARGET_FILE:cppgraphqlgen::graphqljson>
-      TYPE BIN)
+  if(IMPLICIT_GRAPHQLJSON_DEPENDENCY)
+    install(FILES $<TARGET_FILE:cppgraphqlgen::graphqljson> TYPE BIN)
   endif()
 else()
   install(TARGETS
